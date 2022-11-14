@@ -1,0 +1,229 @@
+digraph
+{
+	ordering = out
+node[style = filled]
+
+node0 [label = "a girl"]
+node0 -> node1 [color = "red"]
+
+node1 [label = "a human"]
+node1 -> node2 [color = "red"]
+
+node2 [label = "a witcher"]
+node2 -> node3 [color = "red"]
+
+node3 [label = "a dwarf"]
+node3 -> node4 [color = "red"]
+
+node4 [label = "a druid"]
+node4 -> node5 [color = "red"]
+
+node5 [label = "able to transform"]
+node5 -> node6 [color = "red"]
+
+node6 [label = "Johnny (Ivasik)"]
+node6 -> node7 [color = "red"]
+
+node7 [shape = point]
+node6 -> node8 [color = "green"]
+
+node8 [shape = point]
+node5 -> node9 [color = "green"]
+
+node9 [label = "Dudu"]
+node9 -> node10 [color = "red"]
+
+node10 [shape = point]
+node9 -> node11 [color = "green"]
+
+node11 [shape = point]
+node4 -> node12 [color = "green"]
+
+node12 [label = "Mousesack"]
+node12 -> node13 [color = "red"]
+
+node13 [shape = point]
+node12 -> node14 [color = "green"]
+
+node14 [shape = point]
+node3 -> node15 [color = "green"]
+
+node15 [label = "Zoltan Chivay"]
+node15 -> node16 [color = "red"]
+
+node16 [shape = point]
+node15 -> node17 [color = "green"]
+
+node17 [shape = point]
+node2 -> node18 [color = "green"]
+
+node18 [label = "The Kingslayer"]
+node18 -> node19 [color = "red"]
+
+node19 [label = "alcoholic's son"]
+node19 -> node20 [color = "red"]
+
+node20 [label = "the oldest wither in the Caer Morhen"]
+node20 -> node21 [color = "red"]
+
+node21 [label = "Geralt"]
+node21 -> node22 [color = "red"]
+
+node22 [shape = point]
+node21 -> node23 [color = "green"]
+
+node23 [shape = point]
+node20 -> node24 [color = "green"]
+
+node24 [label = "Vesemir"]
+node24 -> node25 [color = "red"]
+
+node25 [shape = point]
+node24 -> node26 [color = "green"]
+
+node26 [shape = point]
+node19 -> node27 [color = "green"]
+
+node27 [label = "Lambert"]
+node27 -> node28 [color = "red"]
+
+node28 [shape = point]
+node27 -> node29 [color = "green"]
+
+node29 [shape = point]
+node18 -> node30 [color = "green"]
+
+node30 [label = "Letho of Gulet"]
+node30 -> node31 [color = "red"]
+
+node31 [shape = point]
+node30 -> node32 [color = "green"]
+
+node32 [shape = point]
+node1 -> node33 [color = "green"]
+
+node33 [label = "Nilfgaardian politician (maybe in the past)"]
+node33 -> node34 [color = "red"]
+
+node34 [label = "spy"]
+node34 -> node35 [color = "red"]
+
+node35 [label = "a member of the Big Four"]
+node35 -> node36 [color = "red"]
+
+node36 [label = "Vernon Roche"]
+node36 -> node37 [color = "red"]
+
+node37 [shape = point]
+node36 -> node38 [color = "green"]
+
+node38 [shape = point]
+node35 -> node39 [color = "green"]
+
+node39 [label = "Francis Bedlam (the King of Beggars)"]
+node39 -> node40 [color = "red"]
+
+node40 [shape = point]
+node39 -> node41 [color = "green"]
+
+node41 [shape = point]
+node34 -> node42 [color = "green"]
+
+node42 [label = "a redanian spy"]
+node42 -> node43 [color = "red"]
+
+node43 [label = "Thaler"]
+node43 -> node44 [color = "red"]
+
+node44 [shape = point]
+node43 -> node45 [color = "green"]
+
+node45 [shape = point]
+node42 -> node46 [color = "green"]
+
+node46 [label = "Sigismund Dijkstra"]
+node46 -> node47 [color = "red"]
+
+node47 [shape = point]
+node46 -> node48 [color = "green"]
+
+node48 [shape = point]
+node33 -> node49 [color = "green"]
+
+node49 [label = "emperor of Nilfgaard (maybe in the past)"]
+node49 -> node50 [color = "red"]
+
+node50 [label = "Phillip Strenger (Bloody Baron)"]
+node50 -> node51 [color = "red"]
+
+node51 [shape = point]
+node50 -> node52 [color = "green"]
+
+node52 [shape = point]
+node49 -> node53 [color = "green"]
+
+node53 [label = "commander of the Alba division"]
+node53 -> node54 [color = "red"]
+
+node54 [label = "Emhyr var Emreis"]
+node54 -> node55 [color = "red"]
+
+node55 [shape = point]
+node54 -> node56 [color = "green"]
+
+node56 [shape = point]
+node53 -> node57 [color = "green"]
+
+node57 [label = "Morvran Voorhis"]
+node57 -> node58 [color = "red"]
+
+node58 [shape = point]
+node57 -> node59 [color = "green"]
+
+node59 [shape = point]
+node0 -> node60 [color = "green"]
+
+node60 [label = "the wither's girlfriend (maybe in the past)"]
+node60 -> node61 [color = "red"]
+
+node61 [label = "the enchantress from the lodge"]
+node61 -> node62 [color = "red"]
+
+node62 [label = "Cirilla"]
+node62 -> node63 [color = "red"]
+
+node63 [shape = point]
+node62 -> node64 [color = "green"]
+
+node64 [shape = point]
+node61 -> node65 [color = "green"]
+
+node65 [label = "Keira Metz"]
+node65 -> node66 [color = "red"]
+
+node66 [shape = point]
+node65 -> node67 [color = "green"]
+
+node67 [shape = point]
+node60 -> node68 [color = "green"]
+
+node68 [label = "red-haired"]
+node68 -> node69 [color = "red"]
+
+node69 [label = "Yennefer"]
+node69 -> node70 [color = "red"]
+
+node70 [shape = point]
+node69 -> node71 [color = "green"]
+
+node71 [shape = point]
+node68 -> node72 [color = "green"]
+
+node72 [label = "Triss"]
+node72 -> node73 [color = "red"]
+
+node73 [shape = point]
+node72 -> node74 [color = "green"]
+
+node74 [shape = point]
+}

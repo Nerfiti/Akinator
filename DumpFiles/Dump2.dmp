@@ -1,0 +1,24 @@
+digraph
+{
+	ordering = out
+
+node0 [label = "cockroach"]
+node0 -> node1 [label = "No"]
+
+node1 [label = "POLTORASHKA"]
+node1 -> node2 [label = "No"]
+
+node2 [shape = point]
+node1 -> node3 [label = "Yes"]
+
+node3 [shape = point]
+node0 -> node4 [label = "Yes"]
+
+node4 [label = "IVAN"]
+node4 -> node5 [label = "No"]
+
+node5 [shape = point]
+node4 -> node6 [label = "Yes"]
+
+node6 [shape = point]
+}
