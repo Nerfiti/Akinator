@@ -27,4 +27,6 @@ void MG_qsort(void *arr, size_t arr_size, size_t item_size, comp_t comp);
 //-----------------------------------------------------------
 void MG_swap(void *item1, void *item2, size_t item_size);
 
+void CMD_Speak(const char *format, ...);
+
 #endif //MYGENERALFUNCTIONS_H

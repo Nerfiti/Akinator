@@ -5,6 +5,7 @@
 #include "Akinator.hpp"
 #include "linesLib.hpp"
 #include "logs.hpp"
+#include "MyGeneralFunctions.hpp"
 
 //----------------------------------------------------------------------
 //CONSTANTS
@@ -42,7 +43,7 @@ ProgMode GetProgramMode(const int argc, const char *argv[])
 
 void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 {
-    printf("Do you want to save changes of database? (y/n)\n");
+    CMD_Speak("Do you want to save changes of database? (y/n)\n");
 
     Answers ans = ProcessingAnswer();
     if (ans == YES)
@@ -53,7 +54,7 @@ void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 
 void OptionalPrint(const char *filename, Node *node, PrintMode mode, int space)
 {
-    printf("Do you want to save changes of database? (y/n)\n");
+    CMD_Speak("Do you want to save changes of database? (y/n)\n");
 
     Answers ans = ProcessingAnswer();
     if (ans == YES)
@@ -100,14 +101,14 @@ Answers ProcessingAnswer()
         case 'n':
             return NO;
         default:
-            printf("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);
+            CMD_Speak("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);
             return ProcessingAnswer();
     }    
 }
 
 void GuessingCharacters(Node *data)
 {
-    printf("Is your character %s? (y/n)\n", data->data);
+    CMD_Speak("Is your character %s? (y/n)\n", data->data);
     int ans = ProcessingAnswer();
 
     switch (ans)
@@ -138,7 +139,7 @@ void GuessingCharacters(Node *data)
         }
         default:
         {
-            printf("I don't understand. Can you repeat your answer? (%c)\n", ans);
+            CMD_Speak("I don't understand. Can you repeat your answer? (%c)\n", ans);
             GuessingCharacters(data);
             break;
         }
@@ -151,10 +152,10 @@ void GetDefinition(Node *data, const char *character_name)
  
     if (character == nullptr) 
     {
-        printf("\"%s\" not found.\n");
+        CMD_Speak("\"%s\" not found.\n");
         return;
     }
-    printf("%s is ", character_name);
+    CMD_Speak("%s is ", character_name);
     DefineCharacter(data, character, true);
 }
 
@@ -166,17 +167,17 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
     if (stricmp(first_name, second_name) == 0)
     {
-        printf("There are the same characters.\n");
+        CMD_Speak("There are the same characters.\n");
         return;
     }
     if (first_character == nullptr)
     {
-        printf("Character's not found: \"%s\"\n", first_name);
+        CMD_Speak("Character's not found: \"%s\"\n", first_name);
         return;
     }
     if (second_character == nullptr)
     {
-        printf("Character's not found: \"%s\"\n", second_name);
+        CMD_Speak("Character's not found: \"%s\"\n", second_name);
         return;
     }
 
@@ -184,18 +185,18 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
     if (FirstCommonNode == data)
     {
-        printf("These characters don't have similar characteristics.\n");
+        CMD_Speak("These characters don't have similar characteristics.\n");
     }
     else
     {
-        printf("Both of the characters are ");
+        CMD_Speak("Both of the characters are ");
         DefineCharacter(data, FirstCommonNode);
     }
 
-    printf("But %s is ", first_name);
+    CMD_Speak("But %s is ", first_name);
     DefineCharacter(FirstCommonNode, first_character);
 
-    printf("And %s is ", second_name);
+    CMD_Speak("And %s is ", second_name);
     DefineCharacter(FirstCommonNode, second_character);
 }
 
@@ -289,17 +290,17 @@ static bool IsPrevAnsYes(Node *node)
 
 static void CompleteGuessing()
 {
-    printf("Of course yes, I told you, I'm smart\n");
+    CMD_Speak("Of course yes, I told you, I'm smart\n");
 }
 
 static void FailGuessing(Node *node)
 {
-    printf("I know who it is, but I just forgot. Could you remind me who it is?\n");
+    CMD_Speak("I know who it is, but I just forgot. Could you remind me who it is?\n");
     
     char character[MAX_NODE_NAME_LEN + 1] = "";
     gets(character);
 
-    printf("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);
+    CMD_Speak("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);
     char difference[MAX_NODE_NAME_LEN + 1] = "";
     gets(difference);
 
@@ -318,7 +319,7 @@ static void DefineCharacter(Node *tree, Node *node, bool last_def)
     {  
         DefineCharacter(tree, node->parent, false);
 
-        printf("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
+        CMD_Speak("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
 
         if (last_def)
         {

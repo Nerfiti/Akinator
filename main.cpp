@@ -2,6 +2,7 @@
 
 #include "Akinator.hpp"
 #include "logs.hpp"
+#include "MyGeneralFunctions.hpp"
 
 #define END_PROGRAM(code)   \
     closeLog();             \
@@ -16,7 +17,6 @@ int main(const int argc, const char *argv[])
 
     const char input_filename[] = "./data.aki";
     Node *data = InitData(input_filename);
-    treeGraphDump(data);
     
     while (ans == YES)
     {
@@ -29,7 +29,7 @@ int main(const int argc, const char *argv[])
             }        
             case Definitions:
             {
-                printf("For which character do you want to get a definition?\n");
+                CMD_Speak("For which character do you want to get a definition?\n");
 
                 char character_name[MAX_NODE_NAME_LEN] = "";
                 gets(character_name);
@@ -39,7 +39,7 @@ int main(const int argc, const char *argv[])
             }
             case Compare:
             {
-                printf("Which characters do you want to compare?\n");
+                CMD_Speak("Which characters do you want to compare?\n");
 
                 char  first_character_name[MAX_NODE_NAME_LEN] = "";
                 char second_character_name[MAX_NODE_NAME_LEN] = "";
@@ -51,11 +51,11 @@ int main(const int argc, const char *argv[])
             }
             default:
             {
-                printf("Wrong program mode.\n");
+                CMD_Speak("Wrong program mode.\n");
                 END_PROGRAM(0);
             }
         }
-        printf("Do you want to make sure that I am the smartest one more time?\n");
+        CMD_Speak("Do you want to make sure that I am the smartest one more time?\n");
         ans = ProcessingAnswer();
     }
     

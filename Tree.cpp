@@ -10,7 +10,7 @@
 static int Dump_counter = 1;
 
 static const int  MAX_PATH_LEN    = 30;
-static const char DUMP_PATH[]     = "./DumpFiles/Dump%d.dmp";
+static const char DUMP_PATH[]     = "./DumpFiles/Dump%d.dot";
 static const char SVG_DUMP_PATH[] = "./DumpFiles/Dump%d.svg";
 
 static const char ADD_DUMP_TO_HTML_CODE[] = "<details>\n"
