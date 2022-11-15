@@ -1,5 +1,15 @@
 #include <cstdio>
 
+//----------------------------------------------------------------------
+//CONSTANTS
+//----------------------------------------------------------------------
+
+static const char  OPEN_NODE_SYM = '{';
+static const char CLOSE_NODE_SYM = '}';
+static const char IDENT_DATA_SYM = '"';
+
+//----------------------------------------------------------------------
+
 typedef char* tree_elem_t;
 
 enum PrintMode
@@ -11,12 +21,14 @@ enum PrintMode
 
 struct Node
 {
-    Node    *parent = nullptr;
-    tree_elem_t  data   = 0;
-    Node    *left   = nullptr;
-    Node    *right  = nullptr;
-    int          depth  = 0;
+    tree_elem_t data = 0;
+    Node *parent = nullptr;
+    Node *left   = nullptr;
+    Node *right  = nullptr;
+    int  depth   = 0;
 };
+
+//----------------------------------------------------------------------
 
 Node *treeCtor   (tree_elem_t value, int depth = 0);
 Node *addToLeft  (Node *node, tree_elem_t value);

@@ -3,6 +3,8 @@
 #include "logs.hpp"
 #include "Tree.hpp"
 
+#define DEBUG
+
 //--------------------------------------------------------------
 //FOR GRAPH DUMP
 //--------------------------------------------------------------
@@ -18,14 +20,17 @@ static const char ADD_DUMP_TO_HTML_CODE[] = "<details>\n"
                                                 "\t<img src = \".%s\">\n"
                                             "</details>\n\n";
 
+static const char NODE_COLOR[] = "cornflowerblue";
+static const char LEAF_COLOR[] = "springGreen";
+
+static const char  LEFT_EDGE_COLOR[] = "red";
+static const char RIGHT_EDGE_COLOR[] = "green";
+
 static const char START_GRAPH[] =   "digraph {\n"
                                         "\tsize = \"15\"\n"
                                         "\tbgcolor=\"invis\"\n"
                                         "\tordering = out\n\n"
                                     "node[style = filled]\n\n";
-
-static const char NODE_COLOR[] = "cornflowerblue";
-static const char LEAF_COLOR[] = "springGreen";
 
 //--------------------------------------------------------------
 
@@ -68,18 +73,21 @@ void treeDtor(Node *node)
     treeDtor(node->left );
     treeDtor(node->right);
 
-    node->data   = 0;
-    node->left   = nullptr;
-    node->right  = nullptr;
-    node->parent = nullptr;
-    node->depth  = 0;
+    #ifdef DEBUG
+        node->data   = 0;
+        node->left   = nullptr;
+        node->right  = nullptr;
+        node->parent = nullptr;
+        node->depth  = 0;
+    #endif //DEBUG
+
     free(node);
 }
 
 void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
 {
     setSpace(stream, space);
-    fprintf(stream, "{");
+    fprintf(stream, "%c", OPEN_NODE_SYM);
     space++;
 
     if (node != nullptr)
@@ -111,7 +119,7 @@ void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
         setSpace(stream, space);
     }
 
-    fprintf(stream, "}\n");
+    fprintf(stream, "%c\n", CLOSE_NODE_SYM);
 }
 
 void treePrint(const char *filename, const Node *node, PrintMode mode, int space)
@@ -164,9 +172,9 @@ void treeGraphDump(const Node *node)
 
 static Node *addNode(Node *node, tree_elem_t value, bool toLeft)
 {
-    Node *newNode = treeCtor(value);
-    newNode->parent   = node;
-    newNode->depth    = node->depth + 1;
+    Node *newNode   = treeCtor(value);
+    newNode->parent = node;
+    newNode->depth  = node->depth + 1;
 
     if (toLeft) {node->left  = newNode;}
     else        {node->right = newNode;}
@@ -186,7 +194,7 @@ static int creatGraphvizTreeCode(const Node *node, int nodeNum, FILE *dump_file)
 
     if (node->left != nullptr)
     {
-        fprintf(dump_file, "node%d -> node%d [color = \"red\"]\n\n", nodeNum, nodeNum + number_of_nodes);        
+        fprintf(dump_file, "node%d -> node%d [color = \"%s\"]\n\n", nodeNum, nodeNum + number_of_nodes, LEFT_EDGE_COLOR);        
         number_of_nodes += creatGraphvizTreeCode(node->left, nodeNum + number_of_nodes, dump_file);
 
         number_of_nodes++;
@@ -194,7 +202,7 @@ static int creatGraphvizTreeCode(const Node *node, int nodeNum, FILE *dump_file)
 
     if (node->right != nullptr)
     {
-        fprintf(dump_file, "node%d -> node%d [color = \"green\"]\n\n", nodeNum, nodeNum + number_of_nodes);        
+        fprintf(dump_file, "node%d -> node%d [color = \"%s\"]\n\n", nodeNum, nodeNum + number_of_nodes, RIGHT_EDGE_COLOR);        
         number_of_nodes += creatGraphvizTreeCode(node->right, nodeNum + number_of_nodes, dump_file);
 
         number_of_nodes++;
@@ -221,13 +229,17 @@ static void printNodeData(FILE *stream, tree_elem_t data, int space, PrintMode m
     fprintf(stream, "\"%s\"\n", data);
 }
 
-static void setSpace(FILE *stream, int space)
-{
-    for (int i = 0; i < space; ++i)
+#ifdef DEBUG
+    static void setSpace(FILE *stream, int space)
     {
-        fprintf(stream, "\t");
+        for (int i = 0; i < space; ++i)
+        {
+            fprintf(stream, "\t");
+        }
     }
-}
+#else
+    static void setSpace(FILE *stream, int space) {}
+#endif //DEBUG
 
 static bool IsLeaf(const Node *node)
 {

@@ -6,8 +6,6 @@
 
 const void *const JUST_FREE_PTR = "JUST_FREE";
 
-static const int MAX_SPEECH_LEN = 300;
-
 void MG_qsort(void *arr, size_t arr_size, size_t item_size, comp_t comp)
 {
     assert(arr != nullptr);
@@ -48,7 +46,8 @@ void MG_swap(void *item1, void *item2, size_t item_size)
 
 void CMD_Speak(const char *format, ...)
 {
-    setvbuf(stdout, nullptr, _IONBF, 0);
+    const int MAX_SPEECH_LEN = 300;
+
     va_list ptr;
     va_start(ptr, format);
 
@@ -60,7 +59,7 @@ void CMD_Speak(const char *format, ...)
     const int cmd_len = MAX_SPEECH_LEN + 12;
     char cmd[cmd_len] = "";
     
-    sprintf(cmd, ".\\espeak -s 200 \"%s\"", msg);
+    sprintf(cmd, ".\\espeak -s 200 \"%s\"", msg);//TODO: fork()
     system(cmd);
 
     va_end(ptr);

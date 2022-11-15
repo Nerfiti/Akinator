@@ -1,5 +1,5 @@
-#ifndef MYGENERALFUNCTIONS_H
-#define MYGENERALFUNCTIONS_H
+#ifndef MYGENERALFUNCTIONS_HPP
+#define MYGENERALFUNCTIONS_HPP
 
 #include "stdio.h"
 
@@ -27,6 +27,11 @@ void MG_qsort(void *arr, size_t arr_size, size_t item_size, comp_t comp);
 //-----------------------------------------------------------
 void MG_swap(void *item1, void *item2, size_t item_size);
 
+//-----------------------------------------------------------
+//! Print text to the stdout and run espeak for say this text
+//! \param [in] format pointer to the constant line with format like in printf
+//! \param [optional] ... arguments for printf and speech
+//-----------------------------------------------------------
 void CMD_Speak(const char *format, ...);
 
-#endif //MYGENERALFUNCTIONS_H
+#endif //MYGENERALFUNCTIONS_HPP

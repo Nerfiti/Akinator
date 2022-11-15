@@ -1,5 +1,5 @@
-#ifndef LINESLIB_H
-#define LINESLIB_H
+#ifndef LINESLIB_HPP
+#define LINESLIB_HPP
 
 #include <cstdio>
 
@@ -210,4 +210,4 @@ int lines_compare_for_qsort_fromBEGINNING_REVERSE(const void *line1, const void 
 //-----------------------------------------------------------
 int lines_compare_for_qsort_fromEND_REVERSE(const void *line1, const void *line2);
 
-#endif //LINESLIB_H
+#endif //LINESLIB_HPP

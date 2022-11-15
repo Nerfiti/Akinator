@@ -1,3 +1,5 @@
+#define LOGS
+
 #include <assert.h>
 #include <cstdio>
 #include <string.h>
@@ -12,6 +14,9 @@
 //----------------------------------------------------------------------
 
 static const int MAX_ANS_LEN = 1;
+static const char  OPEN_NODE_SYM = '{';
+static const char CLOSE_NODE_SYM = '}';
+static const char IDENT_DATA_SYM = '"';
 
 //----------------------------------------------------------------------
 
@@ -43,7 +48,7 @@ ProgMode GetProgramMode(const int argc, const char *argv[])
 
 void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 {
-    CMD_Speak("Do you want to save changes of database? (y/n)\n");
+    CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
 
     Answers ans = ProcessingAnswer();
     if (ans == YES)
@@ -54,7 +59,7 @@ void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 
 void OptionalPrint(const char *filename, Node *node, PrintMode mode, int space)
 {
-    CMD_Speak("Do you want to save changes of database? (y/n)\n");
+    CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
 
     Answers ans = ProcessingAnswer();
     if (ans == YES)
@@ -79,7 +84,7 @@ Node *InitData(const char *input_filename)
 
     int position = 0;
     
-    SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
 
     tree_elem_t value = InputData + position;
 
@@ -91,7 +96,7 @@ Node *InitData(const char *input_filename)
 Answers ProcessingAnswer() 
 {
     char ans[MAX_ANS_LEN + 1] = "";
-    gets(ans);
+    gets(ans);//TODO: scanf
     putchar('\n');
     
     switch (*ans)
@@ -101,14 +106,14 @@ Answers ProcessingAnswer()
         case 'n':
             return NO;
         default:
-            CMD_Speak("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);
+            CMD_Speak("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);//TODO: phrases
             return ProcessingAnswer();
     }    
 }
 
 void GuessingCharacters(Node *data)
 {
-    CMD_Speak("Is your character %s? (y/n)\n", data->data);
+    CMD_Speak("Is your character %s? (y/n)\n", data->data);//TODO: phrases
     int ans = ProcessingAnswer();
 
     switch (ans)
@@ -139,7 +144,7 @@ void GuessingCharacters(Node *data)
         }
         default:
         {
-            CMD_Speak("I don't understand. Can you repeat your answer? (%c)\n", ans);
+            CMD_Speak("I don't understand. Can you repeat your answer? (%c)\n", ans);//TODO: phrases
             GuessingCharacters(data);
             break;
         }
@@ -152,10 +157,10 @@ void GetDefinition(Node *data, const char *character_name)
  
     if (character == nullptr) 
     {
-        CMD_Speak("\"%s\" not found.\n");
+        CMD_Speak("\"%s\" not found.\n");//TODO: phrases
         return;
     }
-    CMD_Speak("%s is ", character_name);
+    CMD_Speak("%s is ", character_name);//TODO: phrases
     DefineCharacter(data, character, true);
 }
 
@@ -167,17 +172,17 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
     if (stricmp(first_name, second_name) == 0)
     {
-        CMD_Speak("There are the same characters.\n");
+        CMD_Speak("There are the same characters.\n");//TODO: phrases
         return;
     }
     if (first_character == nullptr)
     {
-        CMD_Speak("Character's not found: \"%s\"\n", first_name);
+        CMD_Speak("Character's not found: \"%s\"\n", first_name);//TODO: phrases
         return;
     }
     if (second_character == nullptr)
     {
-        CMD_Speak("Character's not found: \"%s\"\n", second_name);
+        CMD_Speak("Character's not found: \"%s\"\n", second_name);//TODO: phrases
         return;
     }
 
@@ -185,18 +190,18 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
     if (FirstCommonNode == data)
     {
-        CMD_Speak("These characters don't have similar characteristics.\n");
+        CMD_Speak("These characters don't have similar characteristics.\n");//TODO: phrases
     }
     else
     {
-        CMD_Speak("Both of the characters are ");
+        CMD_Speak("Both of the characters are ");//TODO: phrases
         DefineCharacter(data, FirstCommonNode);
     }
 
-    CMD_Speak("But %s is ", first_name);
+    CMD_Speak("But %s is ", first_name);//TODO: phrases
     DefineCharacter(FirstCommonNode, first_character);
 
-    CMD_Speak("And %s is ", second_name);
+    CMD_Speak("And %s is ", second_name);//TODO: phrases
     DefineCharacter(FirstCommonNode, second_character);
 }
 
@@ -204,20 +209,23 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
 static int InitTree(Node **node, int position, char *InputData, int depth)
 {
+    assert (node      != nullptr);
+    assert (InputData != nullptr);
+
     int start_pos = position;
 
     position++;
-    SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
     InputData[position - 1] = '\0';
 
     char *temp = strdup(InputData + start_pos);
 
     *node = treeCtor(temp, depth);
 
-    SkipSymbolsBeforeNextToSymbol('{', &position, InputData);
-    if (InputData[position] != '}')
+    SkipSymbolsBeforeNextToSymbol(OPEN_NODE_SYM, &position, InputData);
+    if (InputData[position] != CLOSE_NODE_SYM)
     {
-        SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
+        SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
         Node *left_tree = nullptr;
 
         position = InitTree(&left_tree, position, InputData, depth + 1);
@@ -230,11 +238,11 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
         position++;
     }
 
-    SkipSymbolsBeforeNextToSymbol('{', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol(OPEN_NODE_SYM, &position, InputData);
 
-    if (InputData[position] != '}')
+    if (InputData[position] != CLOSE_NODE_SYM)
     {
-        SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
+        SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
 
         Node *right_tree = nullptr;
 
@@ -248,7 +256,7 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
         position++;
     }
 
-    while (InputData[position] != '}' && InputData[position] != '\0') 
+    while (InputData[position] != CLOSE_NODE_SYM && InputData[position] != '\0') 
     {
         position++;
     }
@@ -290,17 +298,17 @@ static bool IsPrevAnsYes(Node *node)
 
 static void CompleteGuessing()
 {
-    CMD_Speak("Of course yes, I told you, I'm smart\n");
+    CMD_Speak("Of course yes, I told you, I'm smart\n");//TODO: phrases
 }
 
 static void FailGuessing(Node *node)
 {
-    CMD_Speak("I know who it is, but I just forgot. Could you remind me who it is?\n");
+    CMD_Speak("I know who it is, but I just forgot. Could you remind me who it is?\n");//TODO: phrases
     
     char character[MAX_NODE_NAME_LEN + 1] = "";
     gets(character);
 
-    CMD_Speak("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);
+    CMD_Speak("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);//TODO: phrases
     char difference[MAX_NODE_NAME_LEN + 1] = "";
     gets(difference);
 

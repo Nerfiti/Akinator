@@ -1,3 +1,5 @@
+#define LOGS
+
 #include <cstdio>
 
 #include "Akinator.hpp"
@@ -13,12 +15,12 @@ int main(const int argc, const char *argv[])
     initLog();
 
     ProgMode mode = GetProgramMode(argc, argv);
-    Answers ans = YES;
+    Answers  ans = YES;
 
     const char input_filename[] = "./data.aki";
     Node *data = InitData(input_filename);
     
-    while (ans == YES)
+    while (ans == YES)//TODO: function
     {
         switch (mode)
         {
@@ -29,33 +31,33 @@ int main(const int argc, const char *argv[])
             }        
             case Definitions:
             {
-                CMD_Speak("For which character do you want to get a definition?\n");
+                CMD_Speak("For which character do you want to get a definition?\n");//TODO: phrases
 
                 char character_name[MAX_NODE_NAME_LEN] = "";
-                gets(character_name);
+                gets(character_name);//TODO: scanf
 
                 GetDefinition(data, character_name);
                 break;
             }
             case Compare:
             {
-                CMD_Speak("Which characters do you want to compare?\n");
+                CMD_Speak("Which characters do you want to compare?\n");//TODO: phrases
 
                 char  first_character_name[MAX_NODE_NAME_LEN] = "";
                 char second_character_name[MAX_NODE_NAME_LEN] = "";
-                gets(first_character_name);
-                gets(second_character_name);
+                gets(first_character_name);//TODO: scanf
+                gets(second_character_name);//TODO: scanf
 
                 SimAndDiffsCharacters(data, first_character_name, second_character_name);
                 break;
             }
             default:
             {
-                CMD_Speak("Wrong program mode.\n");
+                CMD_Speak("Wrong program mode.\n");//TODO: phrases
                 END_PROGRAM(0);
             }
         }
-        CMD_Speak("Do you want to make sure that I am the smartest one more time?\n");
+        CMD_Speak("Do you want to make sure that I am the smartest one more time?\n");//TODO: phrases
         ans = ProcessingAnswer();
     }
     

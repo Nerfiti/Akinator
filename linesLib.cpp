@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include <climits>
 #include <malloc.h>
 #include <sys/stat.h>
 
@@ -7,7 +8,7 @@
 #include "MyGeneralFunctions.hpp"
 
 ///Maximum length of the file
-const unsigned long int MAXIMUM_LENGTH_OF_THE_LINE = 4294967295;
+const unsigned long int MAXIMUM_LENGTH_OF_THE_LINE = ULONG_MAX;
 
 void SortFile(const char *filename, bool reverse, bool backsort)
 {
