@@ -2,8 +2,9 @@
 #include <cstdio>
 #include <string.h>
 
-#include "Akinator.h"
-#include "linesLib.h"
+#include "Akinator.hpp"
+#include "linesLib.hpp"
+#include "logs.hpp"
 
 //----------------------------------------------------------------------
 //CONSTANTS
@@ -13,18 +14,18 @@ static const int MAX_ANS_LEN = 1;
 
 //----------------------------------------------------------------------
 
-static void skipSymbolsBeforeNextToThis (char sym, int *position, char *InputData);
+static void SkipSymbolsBeforeNextToSymbol (char sym, int *position, char *InputData);
 
-static void      DefineCharacter  (treeNode *tree, treeNode *node, bool last_def = true);
-static treeNode *FindCharacter    (treeNode *node, const char *character_name);
-static bool      isPrevAnsYes     (treeNode *node);
-static int       initTree         (treeNode **node, int position, char *InputData, int depth = 0);
+static void  DefineCharacter  (Node  *tree, Node *node, bool last_def = true);
+static Node *FindCharacter    (Node  *node, const char *character_name);
+static bool  IsPrevAnsYes     (Node  *node);
+static int   InitTree         (Node **node, int position, char *InputData, int depth = 0);
 
-static void      CompleteGuessing ();
-static void      FailGuessing     (treeNode *node);
+static void  CompleteGuessing ();
+static void  FailGuessing     (Node *node);
 
-static void      EqualizeDepth    (treeNode **first,      treeNode **second);
-static treeNode *SearchCommonNode (treeNode  *first_node, treeNode  *second_node);
+static void  EqualizeDepth    (Node **first,      Node **second);
+static Node *SearchCommonNode (Node  *first_node, Node  *second_node);
 
 //----------------------------------------------------------------------
 
@@ -39,7 +40,7 @@ ProgMode GetProgramMode(const int argc, const char *argv[])
     return WrongMode;
 }
 
-void OptionalPrint(FILE *stream, treeNode *node, PrintMode mode, int space)
+void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 {
     printf("Do you want to save changes of database? (y/n)\n");
 
@@ -48,14 +49,9 @@ void OptionalPrint(FILE *stream, treeNode *node, PrintMode mode, int space)
     {
         treePrint(stream, node, mode, space);
     }
-    if (ans == Undefined)
-    {
-        printf("I don't understand. Can you please repeat your answer?\n");
-        OptionalPrint(stream, node, mode, space);
-    }
 }
 
-void OptionalPrint(const char *filename, treeNode *node, PrintMode mode, int space)
+void OptionalPrint(const char *filename, Node *node, PrintMode mode, int space)
 {
     printf("Do you want to save changes of database? (y/n)\n");
 
@@ -64,14 +60,9 @@ void OptionalPrint(const char *filename, treeNode *node, PrintMode mode, int spa
     {
         treePrint(filename, node, mode, space);
     }
-    if (ans == Undefined)
-    {
-        printf("I don't understand. Can you please repeat your answer?\n");
-        OptionalPrint(filename, node, mode, space);
-    }
 }
 
-treeNode *InitData(const char *input_filename)
+Node *InitData(const char *input_filename)
 {
     FILE *input_file = fopen(input_filename, "r");
     if (input_file == nullptr)
@@ -87,12 +78,12 @@ treeNode *InitData(const char *input_filename)
 
     int position = 0;
     
-    skipSymbolsBeforeNextToThis('"', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
 
     tree_elem_t value = InputData + position;
 
-    treeNode *Tree = nullptr;
-    initTree(&Tree, position, InputData);
+    Node *Tree = nullptr;
+    InitTree(&Tree, position, InputData);
     return Tree;
 }
 
@@ -100,22 +91,21 @@ Answers ProcessingAnswer()
 {
     char ans[MAX_ANS_LEN + 1] = "";
     gets(ans);
-
+    putchar('\n');
+    
     switch (*ans)
     {
         case 'y':
             return YES;
-            break;
         case 'n':
             return NO;
-            break;
         default:
-            return Undefined;
-            break;
+            printf("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);
+            return ProcessingAnswer();
     }    
 }
 
-void GuessingCharacters(treeNode *data)
+void GuessingCharacters(Node *data)
 {
     printf("Is your character %s? (y/n)\n", data->data);
     int ans = ProcessingAnswer();
@@ -124,14 +114,26 @@ void GuessingCharacters(treeNode *data)
     {
         case YES:
         {
-            if (data->right == nullptr) {CompleteGuessing();}
-            else                        {GuessingCharacters(data->right);}
+            if (data->right == nullptr) 
+            {
+                CompleteGuessing();
+            }
+            else 
+            {
+                GuessingCharacters(data->right);
+            }
             break;
         }
         case NO:
         {
-            if (data->left == nullptr) {FailGuessing(data);}
-            else                       {GuessingCharacters(data->left);}
+            if (data->left == nullptr) 
+            {
+                FailGuessing(data);
+            }
+            else
+            {
+                GuessingCharacters(data->left);
+            }
             break;
         }
         default:
@@ -143,9 +145,9 @@ void GuessingCharacters(treeNode *data)
     }
 }
 
-void GetDefinition(treeNode *data, const char *character_name)
+void GetDefinition(Node *data, const char *character_name)
 {    
-    treeNode *character = FindCharacter(data, character_name);
+    Node *character = FindCharacter(data, character_name);
  
     if (character == nullptr) 
     {
@@ -156,10 +158,10 @@ void GetDefinition(treeNode *data, const char *character_name)
     DefineCharacter(data, character, true);
 }
 
-void CompareCharacters(treeNode *data, const char *first_name, const char *second_name)
+void SimAndDiffsCharacters(Node *data, const char *first_name, const char *second_name)
 {
-    treeNode *first_character  = FindCharacter(data, first_name );
-    treeNode *second_character = FindCharacter(data, second_name);
+    Node *first_character  = FindCharacter(data, first_name );
+    Node *second_character = FindCharacter(data, second_name);
 
 
     if (stricmp(first_name, second_name) == 0)
@@ -178,7 +180,7 @@ void CompareCharacters(treeNode *data, const char *first_name, const char *secon
         return;
     }
 
-    treeNode *FirstCommonNode = SearchCommonNode(first_character, second_character);
+    Node *FirstCommonNode = SearchCommonNode(first_character, second_character);
 
     if (FirstCommonNode == data)
     {
@@ -189,7 +191,7 @@ void CompareCharacters(treeNode *data, const char *first_name, const char *secon
         printf("Both of the characters are ");
         DefineCharacter(data, FirstCommonNode);
     }
-    
+
     printf("But %s is ", first_name);
     DefineCharacter(FirstCommonNode, first_character);
 
@@ -199,25 +201,25 @@ void CompareCharacters(treeNode *data, const char *first_name, const char *secon
 
 //----------------------------------------------------------------------
 
-static int initTree(treeNode **node, int position, char *InputData, int depth)
+static int InitTree(Node **node, int position, char *InputData, int depth)
 {
     int start_pos = position;
 
     position++;
-    skipSymbolsBeforeNextToThis('"', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
     InputData[position - 1] = '\0';
 
     char *temp = strdup(InputData + start_pos);
 
     *node = treeCtor(temp, depth);
 
-    skipSymbolsBeforeNextToThis('{', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol('{', &position, InputData);
     if (InputData[position] != '}')
     {
-        skipSymbolsBeforeNextToThis('"', &position, InputData);
-        treeNode *left_tree = nullptr;
+        SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
+        Node *left_tree = nullptr;
 
-        position = initTree(&left_tree, position, InputData, depth + 1);
+        position = InitTree(&left_tree, position, InputData, depth + 1);
         left_tree->parent = *node;
         
         (**node).left = left_tree;
@@ -227,15 +229,15 @@ static int initTree(treeNode **node, int position, char *InputData, int depth)
         position++;
     }
 
-    skipSymbolsBeforeNextToThis('{', &position, InputData);
+    SkipSymbolsBeforeNextToSymbol('{', &position, InputData);
 
     if (InputData[position] != '}')
     {
-        skipSymbolsBeforeNextToThis('"', &position, InputData);
+        SkipSymbolsBeforeNextToSymbol('"', &position, InputData);
 
-        treeNode *right_tree = nullptr;
+        Node *right_tree = nullptr;
 
-        position = initTree(&right_tree, position, InputData, depth + 1);
+        position = InitTree(&right_tree, position, InputData, depth + 1);
         right_tree->parent = *node;
 
         (**node).right = right_tree;
@@ -252,7 +254,7 @@ static int initTree(treeNode **node, int position, char *InputData, int depth)
     return position;
 }
 
-static void skipSymbolsBeforeNextToThis(char sym, int *position, char *InputData)
+static void SkipSymbolsBeforeNextToSymbol(char sym, int *position, char *InputData)
 {
     while (InputData[*position - 1] != sym) 
     {
@@ -260,11 +262,11 @@ static void skipSymbolsBeforeNextToThis(char sym, int *position, char *InputData
     }
 }
 
-static treeNode *FindCharacter(treeNode *node, const char *character_name)
+static Node *FindCharacter(Node *node, const char *character_name)
 {
     if (stricmp(node->data, character_name) == 0) {return node;}
 
-    treeNode *character = nullptr;
+    Node *character = nullptr;
 
     if (node->left != nullptr)
     {
@@ -279,8 +281,9 @@ static treeNode *FindCharacter(treeNode *node, const char *character_name)
     return nullptr;
 }
 
-static bool isPrevAnsYes(treeNode *node)
+static bool IsPrevAnsYes(Node *node)
 {
+    assert (node != nullptr && node->parent != nullptr);
     return (node->parent->right == node); 
 } 
 
@@ -289,7 +292,7 @@ static void CompleteGuessing()
     printf("Of course yes, I told you, I'm smart\n");
 }
 
-static void FailGuessing(treeNode *node)
+static void FailGuessing(Node *node)
 {
     printf("I know who it is, but I just forgot. Could you remind me who it is?\n");
     
@@ -309,24 +312,26 @@ static void FailGuessing(treeNode *node)
     node->data = temp;
 }
 
-static void DefineCharacter(treeNode *tree, treeNode *node, bool last_def)
+static void DefineCharacter(Node *tree, Node *node, bool last_def)
 {
     if (node->parent != nullptr && node != tree)
     {  
         DefineCharacter(tree, node->parent, false);
 
+        printf("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
+
         if (last_def)
         {
-            printf("%s%s.\n", isPrevAnsYes(node) ? "" : "not ", node->parent->data);
+            printf(".\n");
         }
         else
         {
-            printf("%s%s, ", isPrevAnsYes(node) ? "" : "not ", node->parent->data);
+            printf(", ");
         }
     }
 }
 
-static void EqualizeDepth(treeNode **first, treeNode **second)
+static void EqualizeDepth(Node **first, Node **second)
 {
     assert(first != nullptr && second != nullptr);
     assert((*first)->depth >= 0 && (*second)->depth >= 0);
@@ -337,7 +342,7 @@ static void EqualizeDepth(treeNode **first, treeNode **second)
     while ((*second)->depth > (*first )->depth) {*second = (*second)->parent;}   
 }
 
-static treeNode *SearchCommonNode(treeNode *first_node, treeNode *second_node)
+static Node *SearchCommonNode(Node *first_node, Node *second_node)
 {
     EqualizeDepth(&first_node, &second_node);
 

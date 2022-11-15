@@ -1,58 +1,46 @@
-#include <cstdio>
 #include <malloc.h>
 
-#include "Tree.h"
+#include "logs.hpp"
+#include "Tree.hpp"
 
 //--------------------------------------------------------------
-//FOR GRAPHVIZ
+//FOR GRAPH DUMP
 //--------------------------------------------------------------
+
+static int Dump_counter = 1;
 
 static const int  MAX_PATH_LEN    = 30;
 static const char DUMP_PATH[]     = "./DumpFiles/Dump%d.dmp";
 static const char SVG_DUMP_PATH[] = "./DumpFiles/Dump%d.svg";
-static const char START_GRAPH[]   = "digraph\n{\n\tordering = out\nnode[style = filled]\n\n";
 
-static int Dump_counter = 1;
+static const char ADD_DUMP_TO_HTML_CODE[] = "<details>\n"
+                                                "\t<summary>Dump%d</summary>\n"
+                                                "\t<img src = \".%s\">\n"
+                                            "</details>\n\n";
+
+static const char START_GRAPH[] =   "digraph {\n"
+                                        "\tsize = \"15\"\n"
+                                        "\tbgcolor=\"invis\"\n"
+                                        "\tordering = out\n\n"
+                                    "node[style = filled]\n\n";
+
+static const char NODE_COLOR[] = "cornflowerblue";
+static const char LEAF_COLOR[] = "springGreen";
 
 //--------------------------------------------------------------
-//FOR LOG
-//--------------------------------------------------------------
 
-static const char LOG_FILENAME[] = "./Log/log.html";
-
-static FILE *Logfile = nullptr;
-
-//--------------------------------------------------------------
-
-static treeNode *addNode          (treeNode *node, tree_elem_t value, bool toLeft);
-static int  creatGraphvizTreeCode (const treeNode *const node, int nodeNum, FILE *dump_file);
+static Node *addNode              (Node *node, tree_elem_t value, bool toLeft);
+static int  creatGraphvizTreeCode (const Node *node, int nodeNum, FILE *dump_file);
 static void get_dump_filenames    (char *dump_filename, char *svg_dump_filename);
-static void PrintNodeData         (FILE *stream, tree_elem_t data, int space, PrintMode mode);
+static void printNodeData         (FILE *stream, tree_elem_t data, int space, PrintMode mode);
 static void setSpace              (FILE *stream, int space);
+static bool IsLeaf                (const Node *node);
 
 //--------------------------------------------------------------
 
-void initLog()
+Node *treeCtor(tree_elem_t value, int depth)
 {
-    Logfile = fopen(LOG_FILENAME, "w");
-    if (!Logfile)
-    {
-        printf("Error opening logfile");
-        return;
-    }
-
-    fprintf(Logfile, "<style>p {font-size: 25px;}</style>\n\n"
-                     "<p>Program started!</p>\n");
-}
-
-void closeLog()
-{
-    fprintf(Logfile, "\n<p>Program Finished!</p>");
-}
-
-treeNode *treeCtor(tree_elem_t value, int depth)
-{
-    treeNode *node = (treeNode *)calloc(1, sizeof(treeNode));
+    Node *node = (Node *)calloc(1, sizeof(Node));
 
     node->data   = value;
     node->left   = nullptr;
@@ -63,17 +51,17 @@ treeNode *treeCtor(tree_elem_t value, int depth)
     return node;
 }
 
-treeNode *addToLeft(treeNode *node, tree_elem_t value)
+Node *addToLeft(Node *node, tree_elem_t value)
 {
     return addNode(node, value, true);
 }
 
-treeNode *addToRight(treeNode *node, tree_elem_t value)
+Node *addToRight(Node *node, tree_elem_t value)
 {
     return addNode(node, value, false);
 }
 
-void treeDtor(treeNode *node)
+void treeDtor(Node *node)
 {
     if (node == nullptr) {return;}
 
@@ -88,7 +76,7 @@ void treeDtor(treeNode *node)
     free(node);
 }
 
-void treePrint(FILE *const stream, const treeNode *const node, PrintMode mode, int space)
+void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
 {
     setSpace(stream, space);
     fprintf(stream, "{");
@@ -98,7 +86,7 @@ void treePrint(FILE *const stream, const treeNode *const node, PrintMode mode, i
     {
         if (mode == PRE_ORDER)
         {
-            PrintNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->data, space, mode);
         }
         else
         {
@@ -109,14 +97,14 @@ void treePrint(FILE *const stream, const treeNode *const node, PrintMode mode, i
 
         if (mode == IN_ORDER)
         {
-            PrintNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->data, space, mode);
         }
 
         treePrint(stream, node->right, mode, space);
 
         if (mode == POST_ORDER)
         {
-            PrintNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->data, space, mode);
         }
         
         space--;
@@ -126,7 +114,7 @@ void treePrint(FILE *const stream, const treeNode *const node, PrintMode mode, i
     fprintf(stream, "}\n");
 }
 
-void treePrint(const char *const filename, const treeNode *const node, PrintMode mode, int space)
+void treePrint(const char *filename, const Node *node, PrintMode mode, int space)
 {
     FILE *stream = fopen(filename, "w");
     if (stream == nullptr)
@@ -138,10 +126,8 @@ void treePrint(const char *const filename, const treeNode *const node, PrintMode
     treePrint(stream, node, mode, space);
 }
 
-void treeGraphDump(const treeNode *const node)
+void treeGraphDump(const Node *node)
 {
-    fprintf(Logfile, "<hr>\n");
-
     char     dump_filename[MAX_PATH_LEN] = "";
     char svg_dump_filename[MAX_PATH_LEN] = "";
 
@@ -150,7 +136,7 @@ void treeGraphDump(const treeNode *const node)
     FILE *dump_file = fopen(dump_filename, "w");
     if (dump_file == nullptr)
     {
-        fprintf(Logfile, "Error opening dump file: %s\n", dump_filename);
+        log("Error opening dump file: %s\n", dump_filename);
         return;
     }
 
@@ -161,7 +147,7 @@ void treeGraphDump(const treeNode *const node)
     fprintf(dump_file, "}");
     if (fclose(dump_file) != 0)
     {
-        fprintf(Logfile, "<p>Error closing dump_file</p>\n");
+        log("<p>Error closing dump_file</p>\n");
     }
 
     const int MAX_CMD_LEN = 100;
@@ -170,15 +156,15 @@ void treeGraphDump(const treeNode *const node)
     
     system(CMD);
 
-    fprintf(Logfile, "\n<img src = \".%s\"><hr>\n", svg_dump_filename);
+    log(ADD_DUMP_TO_HTML_CODE, Dump_counter, svg_dump_filename);
     Dump_counter++;
 }
 
 //--------------------------------------------------------------
 
-static treeNode *addNode(treeNode *node, tree_elem_t value, bool toLeft)
+static Node *addNode(Node *node, tree_elem_t value, bool toLeft)
 {
-    treeNode *newNode = treeCtor(value);
+    Node *newNode = treeCtor(value);
     newNode->parent   = node;
     newNode->depth    = node->depth + 1;
 
@@ -188,26 +174,33 @@ static treeNode *addNode(treeNode *node, tree_elem_t value, bool toLeft)
     return newNode;
 }
 
-static int creatGraphvizTreeCode(const treeNode *const node, int nodeNum, FILE *dump_file)
+static int creatGraphvizTreeCode(const Node *node, int nodeNum, FILE *dump_file)
 {
-    int number_of_nodes = 1;
-    if (node == nullptr)
+    int number_of_nodes = 0;
+    if (node == nullptr) {return number_of_nodes;}
+
+    number_of_nodes ++;
+
+    bool nullLeft  = true;
+    bool nullRight = true;
+
+    if (node->left != nullptr)
     {
-        fprintf(dump_file, "node%d [shape = point]\n", nodeNum);
-        return number_of_nodes;
-    }
-    else
-    {
-        const int color_name_len = 10;
-        const char color[color_name_len] = "";
-        fprintf(dump_file, "node%d [label = \"%s\"]\n", nodeNum, node->data);
+        fprintf(dump_file, "node%d -> node%d [color = \"red\"]\n\n", nodeNum, nodeNum + number_of_nodes);        
+        number_of_nodes += creatGraphvizTreeCode(node->left, nodeNum + number_of_nodes, dump_file);
+
+        number_of_nodes++;
     }
 
-    fprintf(dump_file, "node%d -> node%d [color = \"red\"]\n\n", nodeNum, nodeNum + number_of_nodes);
-    number_of_nodes += creatGraphvizTreeCode(node->left, nodeNum + number_of_nodes, dump_file);
+    if (node->right != nullptr)
+    {
+        fprintf(dump_file, "node%d -> node%d [color = \"green\"]\n\n", nodeNum, nodeNum + number_of_nodes);        
+        number_of_nodes += creatGraphvizTreeCode(node->right, nodeNum + number_of_nodes, dump_file);
 
-    fprintf(dump_file, "node%d -> node%d [color = \"green\"]\n\n", nodeNum, nodeNum + number_of_nodes);
-    number_of_nodes += creatGraphvizTreeCode(node->right, nodeNum + number_of_nodes, dump_file);
+        number_of_nodes++;
+    }
+
+    fprintf(dump_file, "node%d [label = \"%s\", fillcolor = %s]\n", nodeNum, node->data, IsLeaf(node) ? LEAF_COLOR : NODE_COLOR);
 
     return number_of_nodes;
 }
@@ -218,7 +211,7 @@ static void get_dump_filenames(char *dump_filename, char *svg_dump_filename)
     sprintf(svg_dump_filename, SVG_DUMP_PATH, Dump_counter);
 }
 
-static void PrintNodeData(FILE *stream, tree_elem_t data, int space, PrintMode mode)
+static void printNodeData(FILE *stream, tree_elem_t data, int space, PrintMode mode)
 { 
     if (mode != PRE_ORDER) 
     {
@@ -234,6 +227,11 @@ static void setSpace(FILE *stream, int space)
     {
         fprintf(stream, "\t");
     }
+}
+
+static bool IsLeaf(const Node *node)
+{
+    return (node->left == nullptr && node->right == nullptr);
 }
 
 //--------------------------------------------------------------

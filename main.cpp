@@ -1,6 +1,11 @@
 #include <cstdio>
 
-#include "Akinator.h"
+#include "Akinator.hpp"
+#include "logs.hpp"
+
+#define END_PROGRAM(code)   \
+    closeLog();             \
+    return code                
 
 int main(const int argc, const char *argv[])
 {
@@ -10,8 +15,9 @@ int main(const int argc, const char *argv[])
     Answers ans = YES;
 
     const char input_filename[] = "./data.aki";
-    treeNode *data = InitData(input_filename);
-
+    Node *data = InitData(input_filename);
+    treeGraphDump(data);
+    
     while (ans == YES)
     {
         switch (mode)
@@ -40,20 +46,21 @@ int main(const int argc, const char *argv[])
                 gets(first_character_name);
                 gets(second_character_name);
 
-                CompareCharacters(data, first_character_name, second_character_name);
+                SimAndDiffsCharacters(data, first_character_name, second_character_name);
                 break;
             }
             default:
             {
-                break;
+                printf("Wrong program mode.\n");
+                END_PROGRAM(0);
             }
         }
         printf("Do you want to make sure that I am the smartest one more time?\n");
         ans = ProcessingAnswer();
     }
+    
     OptionalPrint(input_filename, data, PRE_ORDER);
     treeGraphDump(data);
 
-    closeLog();
-    return 0;
+    END_PROGRAM(0);
 }
