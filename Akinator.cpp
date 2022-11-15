@@ -14,9 +14,6 @@
 //----------------------------------------------------------------------
 
 static const int MAX_ANS_LEN = 1;
-static const char  OPEN_NODE_SYM = '{';
-static const char CLOSE_NODE_SYM = '}';
-static const char IDENT_DATA_SYM = '"';
 
 //----------------------------------------------------------------------
 

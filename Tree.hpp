@@ -14,9 +14,9 @@ typedef char* tree_elem_t;
 
 enum PrintMode
 {
-    PRE_ORDER  = -1,
-    IN_ORDER   =  0,
-    POST_ORDER =  1
+    PRE_ORDER,
+    IN_ORDER,
+    POST_ORDER
 };
 
 struct Node
