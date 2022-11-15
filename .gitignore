@@ -1,2 +1,5 @@
 *.exe
 *.o
+/DumpFiles
+/Log
+/DLC
