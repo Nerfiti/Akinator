@@ -22,7 +22,9 @@ Third mode: Compare two characters, you wrote.
 ------------------------------------------------------------------------------------------------------------------------------
 
 -MG: start program with the first  mode (Guessing)
+
 -MD: start program with the second mode (Definitions)
+
 -MC: start program with the third  mode (Comparing)
 
 ------------------------------------------------------------------------------------------------------------------------------
@@ -32,7 +34,9 @@ Third mode: Compare two characters, you wrote.
 Database consists of the element like:
 
 {"element_name"
+
     left_element("NO")
+    
     right_element("YES")
 }
 
