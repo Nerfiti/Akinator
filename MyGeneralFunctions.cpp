@@ -63,31 +63,34 @@ pid_t CMD_Speak(const char *format, ...)
 
 pid_t CMD_Speak(const char *format, va_list ptr)
 {
-    setvbuf(stdout, nullptr, _IONBF, 0);
-
     const int MAX_SPEECH_LEN = 300;
     char msg[MAX_SPEECH_LEN] = "";
     vsprintf(msg, format, ptr);
 
     pid_t PID = fork();
-    if (PID == 0) {execlp("espeak", "espeak", "-s", "150", msg, (char *)0);}
+    if (PID == 0) 
+    {
+        execlp("espeak", "espeak", "-s", "180", msg, (char *)0);
+        perror("Error running espeak: ");
+        exit(1);
+    }
 
     printf("%s", msg);
 
-    setvbuf(stdout, nullptr, _IOFBF, BUFSIZ);
+    fflush(stdout);
     
     return PID;
 }
 
-void CMD_SpeakWithoutAns(const char *format, ...)
+void CMD_SpeakAndWait(const char *format, ...)
 {
     va_list ptr;
     va_start(ptr, format);
 
-    return CMD_SpeakWithoutAns(format, ptr);
+    return CMD_SpeakAndWait(format, ptr);
 }
 
-void CMD_SpeakWithoutAns(const char *format, va_list ptr)
+void CMD_SpeakAndWait(const char *format, va_list ptr)
 {
     pid_t PID = CMD_Speak(format, ptr);
     PID_Wait(PID);

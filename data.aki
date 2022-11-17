@@ -2,7 +2,7 @@
 	{"a human"
 		{"a witcher"
 			{"a dwarf"
-				{"a druid"
+				{"an elf"
 					{"able to transform"
 						{"Johnny (Ivasik)"
 							{}
@@ -13,7 +13,7 @@
 							{}
 						}
 					}
-					{"Mousesack"
+					{"Iorvet"
 						{}
 						{}
 					}
@@ -25,7 +25,7 @@
 			}
 			{"The Kingslayer"
 				{"alcoholic's son"
-					{"the oldest wither in the Caer Morhen"
+					{"the oldest witcher in the Caer Morhen"
 						{"Geralt"
 							{}
 							{}
@@ -87,7 +87,7 @@
 			}
 		}
 	}
-	{"the wither's girlfriend (maybe in the past)"
+	{"the witcher's girlfriend (maybe in the past)"
 		{"the enchantress from the lodge"
 			{"Cirilla"
 				{}

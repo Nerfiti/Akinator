@@ -373,8 +373,6 @@ void lines_cat(Line *target, Line add)
 void FreeBuff(Text *text)
 {
     assert(text != nullptr);
-    assert(text->content != nullptr);
-    assert(text->lines != nullptr);
 
     if (text->content == JUST_FREE_PTR && text->lines == JUST_FREE_PTR)
     {
@@ -382,8 +380,8 @@ void FreeBuff(Text *text)
         return;
     }
 
-    free(text->content);
-    free(text->lines);
+    if (text->content != nullptr) {free(text->content);}
+    if (text->lines   != nullptr) {(text->lines);}
     text->content = (char *)JUST_FREE_PTR;
     text->lines   = (Line *)JUST_FREE_PTR;
 }

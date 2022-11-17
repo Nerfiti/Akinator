@@ -19,6 +19,10 @@ enum ProgMode
     WrongMode
 };
 
+Node    *Run_Akinator          (const char *input_filename, ProgMode mode);
+
+void     Greet                 ();
+void     Farewell              ();
 ProgMode GetProgramMode        (const int argc, const char *argv[]);
 void     OptionalPrint         (FILE       *stream,   Node *node, PrintMode mode, int space = 0);
 void     OptionalPrint         (const char *filename, Node *node, PrintMode mode, int space = 0);
@@ -27,5 +31,6 @@ Answers  ProcessingAnswer      (pid_t speak_pid);
 void     GuessingCharacters    (Node *data);
 void     GetDefinition         (Node *data, const char *character_name);
 void     SimAndDiffsCharacters (Node *data, const char *first_name, const char * second_name);
+void     DestructData          (Node *data_tree);
 
 #endif //AKINATOR_HPP

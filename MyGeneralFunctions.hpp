@@ -41,8 +41,8 @@ pid_t CMD_Speak(const char *format, va_list ptr);
 //! \param [in] format pointer to the constant line with format like in printf
 //! \param [optional] ... arguments for printf and speech
 //-----------------------------------------------------------
-void CMD_SpeakWithoutAns(const char *format, ...);
-void CMD_SpeakWithoutAns(const char *format, va_list ptr);
+void CMD_SpeakAndWait(const char *format, ...);
+void CMD_SpeakAndWait(const char *format, va_list ptr);
 
 void BufCleaner(FILE *stream);
 
