@@ -33,10 +33,12 @@ Third mode: Compare two characters, you wrote.
 
 Database consists of the element like:
 
-{"element_name"
-    left_element("NO")
-    right_element("YES")
-}
+    {"element_name"
+
+        left_element("NO")
+
+        right_element("YES")
+    }
 
 Empty element has the form: {}
 
