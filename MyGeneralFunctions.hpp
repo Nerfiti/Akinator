@@ -2,6 +2,7 @@
 #define MYGENERALFUNCTIONS_HPP
 
 #include "stdio.h"
+#include <sys/types.h>
 
 ///If the pointer value matches this value, then the memory allocated to this pointer had been freed
 extern const void *const JUST_FREE_PTR;
@@ -32,6 +33,17 @@ void MG_swap(void *item1, void *item2, size_t item_size);
 //! \param [in] format pointer to the constant line with format like in printf
 //! \param [optional] ... arguments for printf and speech
 //-----------------------------------------------------------
-void CMD_Speak(const char *format, ...);
+pid_t CMD_Speak(const char *format, ...);
+pid_t CMD_Speak(const char *format, va_list ptr);
+
+//-----------------------------------------------------------
+//! Print text to the stdout and run espeak for say this text. Wait until saying speech
+//! \param [in] format pointer to the constant line with format like in printf
+//! \param [optional] ... arguments for printf and speech
+//-----------------------------------------------------------
+void CMD_SpeakWithoutAns(const char *format, ...);
+void CMD_SpeakWithoutAns(const char *format, va_list ptr);
+
+void BufCleaner(FILE *stream);
 
 #endif //MYGENERALFUNCTIONS_HPP

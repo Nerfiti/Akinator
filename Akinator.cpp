@@ -1,8 +1,7 @@
-#define LOGS
-
 #include <assert.h>
 #include <cstdio>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "Akinator.hpp"
 #include "linesLib.hpp"
@@ -45,9 +44,9 @@ ProgMode GetProgramMode(const int argc, const char *argv[])
 
 void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 {
-    CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
+    pid_t PID = CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
 
-    Answers ans = ProcessingAnswer();
+    Answers ans = ProcessingAnswer(PID);
     if (ans == YES)
     {
         treePrint(stream, node, mode, space);
@@ -56,9 +55,9 @@ void OptionalPrint(FILE *stream, Node *node, PrintMode mode, int space)
 
 void OptionalPrint(const char *filename, Node *node, PrintMode mode, int space)
 {
-    CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
+    pid_t PID = CMD_Speak("Do you want to save changes of database? (y/n)\n");//TODO: phrases
 
-    Answers ans = ProcessingAnswer();
+    Answers ans = ProcessingAnswer(PID);
     if (ans == YES)
     {
         treePrint(filename, node, mode, space);
@@ -90,28 +89,30 @@ Node *InitData(const char *input_filename)
     return Tree;
 }
 
-Answers ProcessingAnswer() 
+Answers ProcessingAnswer(pid_t speak_pid) 
 {
-    char ans[MAX_ANS_LEN + 1] = "";
-    gets(ans);//TODO: scanf
-    putchar('\n');
+    char ans = 0;
+    scanf("%c", &ans);
+    while(getchar() != '\n');
     
-    switch (*ans)
+    kill(speak_pid, SIGKILL);
+
+    switch (ans)
     {
         case 'y':
             return YES;
         case 'n':
             return NO;
         default:
-            CMD_Speak("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", *ans);//TODO: phrases
-            return ProcessingAnswer();
+            speak_pid = CMD_Speak("I don't understand (you say \"%c\"). Can you, please, repeat your answer?\n", ans);//TODO: phrases
+            return ProcessingAnswer(speak_pid);
     }    
 }
 
 void GuessingCharacters(Node *data)
 {
-    CMD_Speak("Is your character %s? (y/n)\n", data->data);//TODO: phrases
-    int ans = ProcessingAnswer();
+    pid_t PID = CMD_Speak("Is your character %s? (y/n)\n", data->data);//TODO: phrases
+    int ans = ProcessingAnswer(PID);
 
     switch (ans)
     {
@@ -154,10 +155,11 @@ void GetDefinition(Node *data, const char *character_name)
  
     if (character == nullptr) 
     {
-        CMD_Speak("\"%s\" not found.\n");//TODO: phrases
+        CMD_SpeakWithoutAns("\"%s\" not found.\n", character_name);//TODO: phrases
         return;
     }
-    CMD_Speak("%s is ", character_name);//TODO: phrases
+    CMD_SpeakWithoutAns("%s is ", character_name);//TODO: phrases
+
     DefineCharacter(data, character, true);
 }
 
@@ -167,19 +169,19 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
     Node *second_character = FindCharacter(data, second_name);
 
 
-    if (stricmp(first_name, second_name) == 0)
+    if (strcmp(first_name, second_name) == 0)
     {
-        CMD_Speak("There are the same characters.\n");//TODO: phrases
+        CMD_SpeakWithoutAns("There are the same characters.\n");//TODO: phrases
         return;
     }
     if (first_character == nullptr)
     {
-        CMD_Speak("Character's not found: \"%s\"\n", first_name);//TODO: phrases
+        CMD_SpeakWithoutAns("Character's not found: \"%s\"\n", first_name);//TODO: phrases
         return;
     }
     if (second_character == nullptr)
     {
-        CMD_Speak("Character's not found: \"%s\"\n", second_name);//TODO: phrases
+        CMD_SpeakWithoutAns("Character's not found: \"%s\"\n", second_name);//TODO: phrases
         return;
     }
 
@@ -187,18 +189,18 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
 
     if (FirstCommonNode == data)
     {
-        CMD_Speak("These characters don't have similar characteristics.\n");//TODO: phrases
+        CMD_SpeakWithoutAns("These characters don't have similar characteristics.\n");//TODO: phrases
     }
     else
     {
-        CMD_Speak("Both of the characters are ");//TODO: phrases
+        CMD_SpeakWithoutAns("Both of the characters are ");//TODO: phrases
         DefineCharacter(data, FirstCommonNode);
     }
 
-    CMD_Speak("But %s is ", first_name);//TODO: phrases
+    CMD_SpeakWithoutAns("But %s is ", first_name);//TODO: phrases
     DefineCharacter(FirstCommonNode, first_character);
 
-    CMD_Speak("And %s is ", second_name);//TODO: phrases
+    CMD_SpeakWithoutAns("And %s is ", second_name);//TODO: phrases
     DefineCharacter(FirstCommonNode, second_character);
 }
 
@@ -270,7 +272,7 @@ static void SkipSymbolsBeforeNextToSymbol(char sym, int *position, char *InputDa
 
 static Node *FindCharacter(Node *node, const char *character_name)
 {
-    if (stricmp(node->data, character_name) == 0) {return node;}
+    if (strcmp(node->data, character_name) == 0) {return node;}
 
     Node *character = nullptr;
 
@@ -295,19 +297,26 @@ static bool IsPrevAnsYes(Node *node)
 
 static void CompleteGuessing()
 {
-    CMD_Speak("Of course yes, I told you, I'm smart\n");//TODO: phrases
+    CMD_SpeakWithoutAns("Of course yes, I told you, I'm smart\n");//TODO: phrases
 }
 
 static void FailGuessing(Node *node)
 {
-    CMD_Speak("I know who it is, but I just forgot. Could you remind me who it is?\n");//TODO: phrases
+    pid_t PID = CMD_Speak("I know who it is, but I just forgot. Could you remind me who it is?\n");//TODO: phrases
     
     char character[MAX_NODE_NAME_LEN + 1] = "";
-    gets(character);
+    scanf("%[^\n]", character);
+    getchar();
 
-    CMD_Speak("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);//TODO: phrases
+    kill(PID, SIGKILL);
+
+    PID = CMD_Speak("And how does %s differ from %s?\n" "%s is: ", character, node->data, character);//TODO: phrases
+    
     char difference[MAX_NODE_NAME_LEN + 1] = "";
-    gets(difference);
+    scanf("%[^\n]", difference);
+    getchar();
+
+    kill(PID, SIGKILL);
 
     addToLeft(node, node->data);
 
@@ -324,7 +333,7 @@ static void DefineCharacter(Node *tree, Node *node, bool last_def)
     {  
         DefineCharacter(tree, node->parent, false);
 
-        CMD_Speak("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
+        CMD_SpeakWithoutAns("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
 
         if (last_def)
         {
@@ -360,5 +369,4 @@ static Node *SearchCommonNode(Node *first_node, Node *second_node)
 
     return first_node;
 }
-
 //----------------------------------------------------------------------

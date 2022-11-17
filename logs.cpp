@@ -50,7 +50,7 @@ static FILE *Logfile = nullptr;
     {
         if (Logfile == nullptr) {return -1;}
 
-        va_list ptr = nullptr;
+        va_list ptr = {};
         va_start(ptr, format);
 
         int result = vfprintf(Logfile, format, ptr);
@@ -65,6 +65,6 @@ static FILE *Logfile = nullptr;
 }
 #else
     void initLog(){}
-    int log(const char *format, ...){}
+    int log(const char *format, ...){return 0;}
     void closeLog(){}
 #endif //LOGS

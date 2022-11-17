@@ -1,6 +1,5 @@
-#define LOGS
-
 #include <cstdio>
+#include <signal.h>
 
 #include "Akinator.hpp"
 #include "logs.hpp"
@@ -13,12 +12,14 @@
 int main(const int argc, const char *argv[])
 {
     initLog();
-
+    
     ProgMode mode = GetProgramMode(argc, argv);
     Answers  ans = YES;
 
     const char input_filename[] = "./data.aki";
     Node *data = InitData(input_filename);
+    
+    treeGraphDump(data);
     
     while (ans == YES)//TODO: function
     {
@@ -31,22 +32,29 @@ int main(const int argc, const char *argv[])
             }        
             case Definitions:
             {
-                CMD_Speak("For which character do you want to get a definition?\n");//TODO: phrases
+                pid_t PID = CMD_Speak("For which character do you want to get a definition?\n");//TODO: phrases
 
                 char character_name[MAX_NODE_NAME_LEN] = "";
-                gets(character_name);//TODO: scanf
+                scanf("%[^\n]", character_name);
+                getchar();
+
+                kill(PID, SIGKILL);                                
 
                 GetDefinition(data, character_name);
                 break;
             }
             case Compare:
             {
-                CMD_Speak("Which characters do you want to compare?\n");//TODO: phrases
+                pid_t PID = CMD_Speak("Which characters do you want to compare?\n");//TODO: phrases
 
                 char  first_character_name[MAX_NODE_NAME_LEN] = "";
                 char second_character_name[MAX_NODE_NAME_LEN] = "";
-                gets(first_character_name);//TODO: scanf
-                gets(second_character_name);//TODO: scanf
+                scanf("%[^\n]",  first_character_name);
+                getchar();
+                scanf("%[^\n]", second_character_name);
+                getchar();
+
+                kill(PID, SIGKILL);
 
                 SimAndDiffsCharacters(data, first_character_name, second_character_name);
                 break;
@@ -57,8 +65,8 @@ int main(const int argc, const char *argv[])
                 END_PROGRAM(0);
             }
         }
-        CMD_Speak("Do you want to make sure that I am the smartest one more time?\n");//TODO: phrases
-        ans = ProcessingAnswer();
+        pid_t PID = CMD_Speak("Do you want to make sure that I am the smartest one more time?\n");//TODO: phrases
+        ans = ProcessingAnswer(PID);
     }
     
     OptionalPrint(input_filename, data, PRE_ORDER);

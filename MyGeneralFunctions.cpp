@@ -1,10 +1,19 @@
 #include <cassert>
 #include <cstdarg>
-#include <windows.h>
+#include <cstdlib>
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "MyGeneralFunctions.hpp"
 
 const void *const JUST_FREE_PTR = "JUST_FREE";
+
+//--------------------------------------------------------------------------------------
+
+static pid_t PID_Wait(pid_t PID);
+
+//--------------------------------------------------------------------------------------
 
 void MG_qsort(void *arr, size_t arr_size, size_t item_size, comp_t comp)
 {
@@ -44,23 +53,50 @@ void MG_swap(void *item1, void *item2, size_t item_size)
     }
 }
 
-void CMD_Speak(const char *format, ...)
+pid_t CMD_Speak(const char *format, ...)
 {
-    const int MAX_SPEECH_LEN = 300;
-
     va_list ptr;
     va_start(ptr, format);
 
+    return CMD_Speak(format, ptr);
+}
+
+pid_t CMD_Speak(const char *format, va_list ptr)
+{
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    const int MAX_SPEECH_LEN = 300;
     char msg[MAX_SPEECH_LEN] = "";
     vsprintf(msg, format, ptr);
 
+    pid_t PID = fork();
+    if (PID == 0) {execlp("espeak", "espeak", "-s", "150", msg, (char *)0);}
+
     printf("%s", msg);
 
-    const int cmd_len = MAX_SPEECH_LEN + 12;
-    char cmd[cmd_len] = "";
+    setvbuf(stdout, nullptr, _IOFBF, BUFSIZ);
     
-    sprintf(cmd, ".\\espeak -s 200 \"%s\"", msg);//TODO: fork()
-    system(cmd);
+    return PID;
+}
 
-    va_end(ptr);
+void CMD_SpeakWithoutAns(const char *format, ...)
+{
+    va_list ptr;
+    va_start(ptr, format);
+
+    return CMD_SpeakWithoutAns(format, ptr);
+}
+
+void CMD_SpeakWithoutAns(const char *format, va_list ptr)
+{
+    pid_t PID = CMD_Speak(format, ptr);
+    PID_Wait(PID);
+}
+
+//--------------------------------------------------------------------------------------
+
+static pid_t PID_Wait(pid_t PID)
+{
+    int status = 0;
+    return waitpid(PID, &status, 0);
 }

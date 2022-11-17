@@ -1,4 +1,5 @@
 #include <malloc.h>
+#include <cstdlib>
 
 #include "logs.hpp"
 #include "Tree.hpp"
@@ -27,7 +28,6 @@ static const char  LEFT_EDGE_COLOR[] = "red";
 static const char RIGHT_EDGE_COLOR[] = "green";
 
 static const char START_GRAPH[] =   "digraph {\n"
-                                        "\tsize = \"15\"\n"
                                         "\tbgcolor=\"invis\"\n"
                                         "\tordering = out\n\n"
                                     "node[style = filled]\n\n";
