@@ -26,14 +26,10 @@ static void  DefineCharacter  (Node  *tree, Node *node, bool last_def = true);
 static Node *FindCharacter    (Node  *node, const char *character_name);
 static bool  IsPrevAnsYes     (Node  *node);
 static int   InitTree         (Node **node, int position, char *InputData, int depth = 0);
-
 static void  CompleteGuessing ();
 static void  FailGuessing     (Node *node);
-
 static void  EqualizeDepth    (Node **first,      Node **second);
 static Node *SearchCommonNode (Node  *first_node, Node  *second_node);
-
-static void  GetLine          (char *target);
 
 //----------------------------------------------------------------------
 
@@ -69,7 +65,7 @@ Node *Run_Akinator(const char *input_filename, ProgMode mode)
             case Compare:
             {
                 pid_t PID = CMD_Speak(ASK_ABOUT_CHARATERS_FOR_COMPARING);
-
+                
                 char  first_character_name[MAX_NODE_NAME_LEN] = "";
                 GetLine(first_character_name);
 
@@ -96,7 +92,7 @@ Node *Run_Akinator(const char *input_filename, ProgMode mode)
             mode = AskProgMode(PID);
         }
     }
-    
+
     OptionalPrint(input_filename, data, PRE_ORDER);
     Farewell();
     return data;
@@ -162,17 +158,16 @@ Node *InitData(const char *input_filename)
     
     Text Data = {};
     file_to_memory_with_fread(input_file, &Data);
-    char *InputData = Data.content;
     fclose(input_file);
 
     int position = 0;
     
-    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
+    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, Data.content);
 
-    tree_elem_t value = InputData + position;
+    tree_elem_t value = Data.content + position;
 
     Node *Tree = nullptr;
-    InitTree(&Tree, position, InputData);
+    InitTree(&Tree, position, Data.content);
 
     FreeBuff(&Data);
     return Tree;
@@ -198,7 +193,7 @@ Answers ProcessingAnswer(pid_t speak_pid)
     }    
 }
 
-void GuessingCharacters(Node *data)
+void GuessingCharacters(Node *data)//Without recursive
 {
     pid_t PID = CMD_Speak(ANSWERS_ABOUT_CHARACTER, data->data);
     int ans = ProcessingAnswer(PID);
@@ -295,6 +290,9 @@ void DestructData(Node *data_tree)
         if (data_tree->right != nullptr) {DestructData(data_tree->right);}
 
         free(data_tree->data);
+    }
+    if (data_tree->parent == nullptr)
+    {
         treeDtor(data_tree);
     }
 }
@@ -303,7 +301,7 @@ void DestructData(Node *data_tree)
 
 static void SkipSymbolsBeforeNextToSymbol(char sym, int *position, char *InputData)
 {
-    while (InputData[*position - 1] != sym) 
+    while (InputData[*position - 1] != sym && InputData[*position] != '\0') 
     {
         (*position)++;
     }
@@ -331,7 +329,7 @@ static ProgMode AskProgMode(pid_t speak_pid)
     }    
 }
 
-static void DefineCharacter(Node *tree, Node *node, bool last_def)
+static void DefineCharacter(Node *tree, Node *node, bool last_def)//TODO: without recursive
 {
     if (node->parent != nullptr && node != tree)
     {  
@@ -386,9 +384,9 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
     SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
     InputData[position - 1] = '\0';
 
-    char *temp = strdup(InputData + start_pos);
+    char *temp_ptr = strdup(InputData + start_pos);//TODO: without strdup
 
-    *node = treeCtor(temp, depth);
+    *node = treeCtor(temp_ptr, depth);
 
     SkipSymbolsBeforeNextToSymbol(OPEN_NODE_SYM, &position, InputData);
     if (InputData[position] != CLOSE_NODE_SYM)
@@ -407,7 +405,6 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
     }
 
     SkipSymbolsBeforeNextToSymbol(OPEN_NODE_SYM, &position, InputData);
-
     if (InputData[position] != CLOSE_NODE_SYM)
     {
         SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
@@ -424,10 +421,7 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
         position++;
     }
 
-    while (InputData[position] != CLOSE_NODE_SYM && InputData[position] != '\0') 
-    {
-        position++;
-    }
+    SkipSymbolsBeforeNextToSymbol(CLOSE_NODE_SYM, &position, InputData); 
     return position;
 }
 
@@ -483,12 +477,6 @@ static Node *SearchCommonNode(Node *first_node, Node *second_node)
     }
 
     return first_node;
-}
-
-static void GetLine(char *target)
-{
-    scanf("%[^\n]", target);
-    getchar();
 }
 
 //----------------------------------------------------------------------

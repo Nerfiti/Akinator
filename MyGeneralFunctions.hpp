@@ -44,6 +44,5 @@ pid_t CMD_Speak(const char *format, va_list ptr);
 void CMD_SpeakAndWait(const char *format, ...);
 void CMD_SpeakAndWait(const char *format, va_list ptr);
 
-void BufCleaner(FILE *stream);
-
+void GetLine(char *target);
 #endif //MYGENERALFUNCTIONS_HPP

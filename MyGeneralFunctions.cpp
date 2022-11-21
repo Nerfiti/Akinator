@@ -58,7 +58,10 @@ pid_t CMD_Speak(const char *format, ...)
     va_list ptr;
     va_start(ptr, format);
 
-    return CMD_Speak(format, ptr);
+    pid_t PID = CMD_Speak(format, ptr);
+
+    va_end(ptr);
+    return PID;
 }
 
 pid_t CMD_Speak(const char *format, va_list ptr)
@@ -87,13 +90,21 @@ void CMD_SpeakAndWait(const char *format, ...)
     va_list ptr;
     va_start(ptr, format);
 
-    return CMD_SpeakAndWait(format, ptr);
+    CMD_SpeakAndWait(format, ptr);
+
+    va_end(ptr);
 }
 
 void CMD_SpeakAndWait(const char *format, va_list ptr)
 {
     pid_t PID = CMD_Speak(format, ptr);
     PID_Wait(PID);
+}
+
+void GetLine(char *target)
+{
+    scanf("%[^\n]", target);
+    getchar();
 }
 
 //--------------------------------------------------------------------------------------

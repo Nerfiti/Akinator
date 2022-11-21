@@ -89,9 +89,15 @@
 	}
 	{"the witcher's girlfriend (maybe in the past)"
 		{"the enchantress from the lodge"
-			{"Cirilla"
-				{}
-				{}
+			{"the commander of a small Scoiatael faction in Velen"
+				{"Cirilla"
+					{}
+					{}
+				}
+				{"Vernossiel"
+					{}
+					{}
+				}
 			}
 			{"Keira Metz"
 				{}

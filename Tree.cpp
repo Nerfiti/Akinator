@@ -2,6 +2,7 @@
 #include <cstdlib>
 
 #include "logs.hpp"
+#include "MyGeneralFunctions.hpp"
 #include "Tree.hpp"
 
 #define DEBUG
@@ -81,14 +82,20 @@ void treeDtor(Node *node)
         node->depth  = 0;
     #endif //DEBUG
 
-    free(node);
+    if (node != JUST_FREE_PTR) 
+    {
+        free(node);
+        node = (Node *)JUST_FREE_PTR;
+    }
+
 }
 
 void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
 {
     setSpace(stream, space);
-    fprintf(stream, "%c", OPEN_NODE_SYM);
     space++;
+
+    fprintf(stream, "%c", OPEN_NODE_SYM);
 
     if (node != nullptr)
     {

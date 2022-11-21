@@ -16,6 +16,7 @@ int main(const int argc, const char *argv[])
 
     treeGraphDump(data);
     DestructData(data);
+ 
     closeLog();
     return 0;
 }
