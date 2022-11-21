@@ -22,8 +22,9 @@ static const char ADD_DUMP_TO_HTML_CODE[] = "<details>\n"
                                                 "\t<img src = \".%s\">\n"
                                             "</details>\n\n";
 
-static const char NODE_COLOR[] = "cornflowerblue";
-static const char LEAF_COLOR[] = "springGreen";
+static const char NODE_COLOR[]      = "cornflowerblue";
+static const char LEAF_COLOR[]      = "springGreen";
+static const char JUST_ADDED_NODE[] = "pink";
 
 static const char  LEFT_EDGE_COLOR[] = "red";
 static const char RIGHT_EDGE_COLOR[] = "green";
@@ -35,7 +36,7 @@ static const char START_GRAPH[] =   "digraph {\n"
 
 //--------------------------------------------------------------
 
-static Node *addNode              (Node *node, tree_elem_t value, bool toLeft);
+static Node *addNode              (Node *node, tree_elem_t value, bool toLeft, bool must_been_released);
 static int  creatGraphvizTreeCode (const Node *node, int nodeNum, FILE *dump_file);
 static void get_dump_filenames    (char *dump_filename, char *svg_dump_filename);
 static void printNodeData         (FILE *stream, tree_elem_t data, int space, PrintMode mode);
@@ -44,7 +45,7 @@ static bool IsLeaf                (const Node *node);
 
 //--------------------------------------------------------------
 
-Node *treeCtor(tree_elem_t value, int depth)
+Node *treeCtor(tree_elem_t value, bool must_been_released, int depth)
 {
     Node *node = (Node *)calloc(1, sizeof(Node));
 
@@ -53,18 +54,20 @@ Node *treeCtor(tree_elem_t value, int depth)
     node->right  = nullptr;
     node->parent = nullptr;
     node->depth  = depth;
+    
+    node->must_been_released = must_been_released;
 
     return node;
 }
 
-Node *addToLeft(Node *node, tree_elem_t value)
+Node *addToLeft(Node *node, tree_elem_t value, bool must_been_released)
 {
-    return addNode(node, value, true);
+    return addNode(node, value, true, must_been_released);
 }
 
-Node *addToRight(Node *node, tree_elem_t value)
+Node *addToRight(Node *node, tree_elem_t value, bool must_been_released)
 {
-    return addNode(node, value, false);
+    return addNode(node, value, false, must_been_released);
 }
 
 void treeDtor(Node *node)
@@ -177,9 +180,9 @@ void treeGraphDump(const Node *node)
 
 //--------------------------------------------------------------
 
-static Node *addNode(Node *node, tree_elem_t value, bool toLeft)
+static Node *addNode(Node *node, tree_elem_t value, bool toLeft, bool must_been_released)
 {
-    Node *newNode   = treeCtor(value);
+    Node *newNode   = treeCtor(value, must_been_released);
     newNode->parent = node;
     newNode->depth  = node->depth + 1;
 
@@ -215,7 +218,13 @@ static int creatGraphvizTreeCode(const Node *node, int nodeNum, FILE *dump_file)
         number_of_nodes++;
     }
 
-    fprintf(dump_file, "node%d [label = \"%s\", fillcolor = %s]\n", nodeNum, node->data, IsLeaf(node) ? LEAF_COLOR : NODE_COLOR);
+    const char *color = IsLeaf(node) ? LEAF_COLOR : NODE_COLOR;
+    if (node->must_been_released)
+    {
+        color = JUST_ADDED_NODE;
+    }
+
+    fprintf(dump_file, "node%d [label = \"%s\", fillcolor = %s]\n", nodeNum, node->data, color);
 
     return number_of_nodes;
 }

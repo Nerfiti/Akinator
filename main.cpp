@@ -14,9 +14,6 @@ int main(const int argc, const char *argv[])
 
     Node *data = Run_Akinator(input_filename, mode);
 
-    treeGraphDump(data);
-    DestructData(data);
- 
     closeLog();
     return 0;
 }

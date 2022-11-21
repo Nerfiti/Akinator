@@ -6,7 +6,6 @@
 #include <sys/wait.h>
 
 #include "Akinator.hpp"
-#include "linesLib.hpp"
 #include "logs.hpp"
 #include "MyGeneralFunctions.hpp"
 
@@ -22,7 +21,7 @@ static void SkipSymbolsBeforeNextToSymbol (char sym, int *position, char *InputD
 
 static ProgMode AskProgMode   (pid_t speak_pid);
 
-static void  DefineCharacter  (Node  *tree, Node *node, bool last_def = true);
+static void  DefineCharacter  (Node  *tree, Node *node);
 static Node *FindCharacter    (Node  *node, const char *character_name);
 static bool  IsPrevAnsYes     (Node  *node);
 static int   InitTree         (Node **node, int position, char *InputData, int depth = 0);
@@ -36,8 +35,8 @@ static Node *SearchCommonNode (Node  *first_node, Node  *second_node);
 Node *Run_Akinator(const char *input_filename, ProgMode mode)
 {
     Answers ans = YES;
-
-    Node *data = InitData(input_filename);
+    Text Data_content = {};
+    Node *data = InitData(input_filename, &Data_content);
 
     Greet();
 
@@ -95,6 +94,10 @@ Node *Run_Akinator(const char *input_filename, ProgMode mode)
 
     OptionalPrint(input_filename, data, PRE_ORDER);
     Farewell();
+
+    treeGraphDump(data);
+    DestructData(data, &Data_content);
+
     return data;
 }
 
@@ -147,7 +150,7 @@ void OptionalPrint(const char *filename, Node *node, PrintMode mode, int space)
     }
 }
 
-Node *InitData(const char *input_filename)
+Node *InitData(const char *input_filename, Text *Data_content)
 {
     FILE *input_file = fopen(input_filename, "r");
     if (input_file == nullptr)
@@ -155,21 +158,19 @@ Node *InitData(const char *input_filename)
         printf("Error opening input file: %s\n", input_filename);
         return nullptr;
     }
-    
-    Text Data = {};
-    file_to_memory_with_fread(input_file, &Data);
+
+    file_to_memory_with_fread(input_file, Data_content);
     fclose(input_file);
 
     int position = 0;
     
-    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, Data.content);
+    SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, Data_content->content);
 
-    tree_elem_t value = Data.content + position;
+    tree_elem_t value = Data_content->content + position;
 
     Node *Tree = nullptr;
-    InitTree(&Tree, position, Data.content);
+    InitTree(&Tree, position, Data_content->content);
 
-    FreeBuff(&Data);
     return Tree;
 }
 
@@ -193,36 +194,41 @@ Answers ProcessingAnswer(pid_t speak_pid)
     }    
 }
 
-void GuessingCharacters(Node *data)//Without recursive
+void GuessingCharacters(Node *data)
 {
-    pid_t PID = CMD_Speak(ANSWERS_ABOUT_CHARACTER, data->data);
-    int ans = ProcessingAnswer(PID);
-
-    switch (ans)
+    while (data != nullptr)
     {
-        case YES:
+        pid_t PID = CMD_Speak(ANSWERS_ABOUT_CHARACTER, data->data);
+        int ans = ProcessingAnswer(PID);
+
+        switch (ans)
         {
-            if (data->right == nullptr) 
+            case YES:
             {
-                CompleteGuessing();
+                if (data->right == nullptr) 
+                {
+                    CompleteGuessing();
+                    return;
+                }
+                else 
+                {
+                    data = data->right;
+                }
+                break;
             }
-            else 
+            case NO:
             {
-                GuessingCharacters(data->right);
+                if (data->left == nullptr) 
+                {
+                    FailGuessing(data);
+                    return;
+                }
+                else
+                {
+                    data = data->left;
+                }
+                break;
             }
-            break;
-        }
-        case NO:
-        {
-            if (data->left == nullptr) 
-            {
-                FailGuessing(data);
-            }
-            else
-            {
-                GuessingCharacters(data->left);
-            }
-            break;
         }
     }
 }
@@ -233,12 +239,12 @@ void GetDefinition(Node *data, const char *character_name)
  
     if (character == nullptr) 
     {
-        CMD_SpeakAndWait(UNDEFINED_CHARACTER, character_name);//TODO: phrases
+        CMD_SpeakAndWait(UNDEFINED_CHARACTER, character_name);
         return;
     }
-    CMD_SpeakAndWait(TRY_GUESS_CHARACTER, character_name);//TODO: phrases
+    CMD_SpeakAndWait(TRY_GUESS_CHARACTER, character_name);
 
-    DefineCharacter(data, character, true);
+    DefineCharacter(data, character);
 }
 
 void SimAndDiffsCharacters(Node *data, const char *first_name, const char *second_name)
@@ -282,18 +288,22 @@ void SimAndDiffsCharacters(Node *data, const char *first_name, const char *secon
     DefineCharacter(FirstCommonNode, second_character);
 }
 
-void DestructData(Node *data_tree)
+void DestructData(Node *data_tree, Text *Data_content)
 {
     if (data_tree != nullptr)
     {
-        if (data_tree->left  != nullptr) {DestructData(data_tree->left);}
-        if (data_tree->right != nullptr) {DestructData(data_tree->right);}
+        if (data_tree->left  != nullptr) {DestructData(data_tree->left, Data_content); }
+        if (data_tree->right != nullptr) {DestructData(data_tree->right, Data_content);}
 
-        free(data_tree->data);
+        if (data_tree->must_been_released) 
+        {   
+            free(data_tree->data);
+        }
     }
     if (data_tree->parent == nullptr)
     {
         treeDtor(data_tree);
+        FreeBuff(Data_content);
     }
 }
 
@@ -329,23 +339,25 @@ static ProgMode AskProgMode(pid_t speak_pid)
     }    
 }
 
-static void DefineCharacter(Node *tree, Node *node, bool last_def)//TODO: without recursive
+static void DefineCharacter(Node *tree, Node *node)
 {
-    if (node->parent != nullptr && node != tree)
-    {  
-        DefineCharacter(tree, node->parent, false);
+    int start_depth = tree->depth + 1;
+    int finish_depth = node->depth;
 
-        CMD_SpeakAndWait("%s%s", IsPrevAnsYes(node) ? "" : "not ", node->parent->data);
-
-        if (last_def)
-        {
-            printf(".\n");
-        }
-        else
-        {
-            printf(", ");
-        }
+    Node *array[node->depth + 1] = {};
+    while (node->parent != nullptr && node != tree)
+    {
+        array[node->depth] = node;
+        node = node->parent;
     }
+
+    bool last_def = false;
+    for (int dep = start_depth; dep < finish_depth; dep++)
+    {
+        CMD_SpeakAndWait("%s%s, ", IsPrevAnsYes(array[dep]) ? "" : "not ", array[dep]->parent->data);
+    }
+
+    CMD_SpeakAndWait("%s%s.\n", IsPrevAnsYes(array[finish_depth]) ? "" : "not ", array[finish_depth]->parent->data);
 }
 
 static Node *FindCharacter(Node *node, const char *character_name)
@@ -384,9 +396,9 @@ static int InitTree(Node **node, int position, char *InputData, int depth)
     SkipSymbolsBeforeNextToSymbol(IDENT_DATA_SYM, &position, InputData);
     InputData[position - 1] = '\0';
 
-    char *temp_ptr = strdup(InputData + start_pos);//TODO: without strdup
+    char *temp_ptr = InputData + start_pos;
 
-    *node = treeCtor(temp_ptr, depth);
+    *node = treeCtor(temp_ptr, false, depth);
 
     SkipSymbolsBeforeNextToSymbol(OPEN_NODE_SYM, &position, InputData);
     if (InputData[position] != CLOSE_NODE_SYM)
@@ -446,10 +458,11 @@ static void FailGuessing(Node *node)
 
     kill(PID, SIGKILL);
 
-    addToLeft(node, node->data);
+    addToLeft(node, node->data, false);
+    node->must_been_released = true;
 
     char *temp = strdup(character);
-    addToRight(node, temp);
+    addToRight(node, temp, true);
 
     temp = strdup(difference);
     node->data = temp;
