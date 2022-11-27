@@ -45,4 +45,7 @@ void CMD_SpeakAndWait(const char *format, ...);
 void CMD_SpeakAndWait(const char *format, va_list ptr);
 
 void GetLine(char *target);
+
+bool isEqualDoubleNumbers(double first_num, double second_num);
+
 #endif //MYGENERALFUNCTIONS_HPP

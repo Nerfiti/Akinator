@@ -1,3 +1,6 @@
+#ifndef TREE_HPP
+#define TREE_HPP
+
 #include <cstdio>
 
 //----------------------------------------------------------------------
@@ -10,7 +13,27 @@ static const char IDENT_DATA_SYM = '"';
 
 //----------------------------------------------------------------------
 
-typedef char* tree_elem_t;
+enum Type
+{
+    NUM,
+    OP,
+    VAR
+};
+
+enum Operations
+{
+    ADD = '+',
+    SUB = '-',
+    MUL = '*',
+    DIV = '/'
+};
+
+union Data
+{
+    double value = 0;
+    Operations op;
+    const char var;
+};
 
 enum PrintMode
 {
@@ -21,22 +44,24 @@ enum PrintMode
 
 struct Node
 {
-    tree_elem_t data = 0;
+    Type type  = NUM;
+    Data data  = {};
+
     Node *parent = nullptr;
     Node *left   = nullptr;
     Node *right  = nullptr;
-    int  depth   = 0;
-
-    bool must_been_released = false; 
 };
 
 //----------------------------------------------------------------------
 
-Node *treeCtor   (tree_elem_t value, bool must_been_released, int depth = 0);
-Node *addToLeft  (Node *node, tree_elem_t value, bool must_been_released);
-Node *addToRight (Node *node, tree_elem_t value, bool must_been_released);
+Node *treeCtor   (Type type, Data data);
+Node *addToLeft  (Node *node, Type type, Data data );
+Node *addToRight (Node *node, Type type, Data data );
 void  treeDtor   (Node *node);
+void  nodeDtor   (Node *node);
 
 void treePrint     (FILE *stream,         const Node *node, PrintMode mode, int space = 0);
 void treePrint     (const char *filename, const Node *node, PrintMode mode, int space = 0);
 void treeGraphDump (const Node *node);
+
+#endif //TREE_HPP

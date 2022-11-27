@@ -9,6 +9,8 @@
 
 const void *const JUST_FREE_PTR = "JUST_FREE";
 
+const double MIN_POSITIVE_DOUBLE_VALUE   = 10e-8; 
+
 //--------------------------------------------------------------------------------------
 
 static pid_t PID_Wait(pid_t PID);
@@ -105,6 +107,12 @@ void GetLine(char *target)
 {
     scanf("%[^\n]", target);
     getchar();
+}
+
+bool isEqualDoubleNumbers(double first_num, double second_num)
+{
+    double difference = first_num - second_num;
+    return (-MIN_POSITIVE_DOUBLE_VALUE < difference && difference < MIN_POSITIVE_DOUBLE_VALUE); 
 }
 
 //--------------------------------------------------------------------------------------

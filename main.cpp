@@ -1,19 +1,35 @@
 #include <cstdio>
-#include <signal.h>
 
-#include "Akinator.hpp"
+#include "Differentiator.hpp"
 #include "logs.hpp"
 #include "MyGeneralFunctions.hpp"
+#include "Syntax_analyzer.hpp"
 
-int main(const int argc, const char *argv[])
+int main()
 {
     initLog();
 
-    ProgMode mode = GetProgramMode(argc, argv);
-    const char input_filename[] = "./data.aki";
+    int start = 1;
+    int finish = 1;
 
-    Node *data = Run_Akinator(input_filename, mode);
+    while (start <= finish)
+    {
+        const int max_expression_len = 1000;
+        
+        char exp[max_expression_len] = "";
+        GetLine(exp);
+        exp[max_expression_len - 1] = '\0';
+
+        Node *node = GetStarted(exp);
+        treeGraphDump(node);
+
+        node = Diff(node);
+        treeGraphDump(node);
+
+        node = OptimizeExpression(node);
+
+        start++;
+    }
 
     closeLog();
-    return 0;
 }

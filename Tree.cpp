@@ -17,14 +17,13 @@ static const int  MAX_PATH_LEN    = 30;
 static const char DUMP_PATH[]     = "./DumpFiles/Dump%d.dot";
 static const char SVG_DUMP_PATH[] = "./DumpFiles/Dump%d.svg";
 
-static const char ADD_DUMP_TO_HTML_CODE[] = "<details>\n"
+static const char ADD_DUMP_TO_HTML_CODE[] = "<details open>\n"
                                                 "\t<summary>Dump%d</summary>\n"
                                                 "\t<img src = \".%s\">\n"
                                             "</details>\n\n";
 
 static const char NODE_COLOR[]      = "cornflowerblue";
 static const char LEAF_COLOR[]      = "springGreen";
-static const char JUST_ADDED_NODE[] = "pink";
 
 static const char  LEFT_EDGE_COLOR[] = "red";
 static const char RIGHT_EDGE_COLOR[] = "green";
@@ -32,42 +31,40 @@ static const char RIGHT_EDGE_COLOR[] = "green";
 static const char START_GRAPH[] =   "digraph {\n"
                                         "\tbgcolor=\"invis\"\n"
                                         "\tordering = out\n\n"
-                                    "node[style = filled]\n\n";
+                                    "node[style = filled, shape = record]\n\n";
 
 //--------------------------------------------------------------
 
-static Node *addNode              (Node *node, tree_elem_t value, bool toLeft, bool must_been_released);
+static Node *addNode              (Node *node, Type type, Data data, bool toLeft);
 static int  creatGraphvizTreeCode (const Node *node, int nodeNum, FILE *dump_file);
 static void get_dump_filenames    (char *dump_filename, char *svg_dump_filename);
-static void printNodeData         (FILE *stream, tree_elem_t data, int space, PrintMode mode);
+static void printNodeData         (FILE *stream, Type type, Data data, int space, PrintMode mode);
 static void setSpace              (FILE *stream, int space);
 static bool IsLeaf                (const Node *node);
 
 //--------------------------------------------------------------
 
-Node *treeCtor(tree_elem_t value, bool must_been_released, int depth)
+Node *treeCtor(Type type, Data data)//TODO: 3 Ctors
 {
     Node *node = (Node *)calloc(1, sizeof(Node));
 
-    node->data   = value;
-    node->left   = nullptr;
-    node->right  = nullptr;
-    node->parent = nullptr;
-    node->depth  = depth;
-    
-    node->must_been_released = must_been_released;
+    node->type       = type;
+    node->data.value = data.value;
+    node->left       = nullptr;
+    node->right      = nullptr;
+    node->parent     = nullptr;
 
     return node;
 }
 
-Node *addToLeft(Node *node, tree_elem_t value, bool must_been_released)
+Node *addToLeft(Node *node, Type type, Data data)
 {
-    return addNode(node, value, true, must_been_released);
+    return addNode(node, type, data, true);
 }
 
-Node *addToRight(Node *node, tree_elem_t value, bool must_been_released)
+Node *addToRight(Node *node, Type type, Data data)
 {
-    return addNode(node, value, false, must_been_released);
+    return addNode(node, type, data, false);
 }
 
 void treeDtor(Node *node)
@@ -77,12 +74,19 @@ void treeDtor(Node *node)
     treeDtor(node->left );
     treeDtor(node->right);
 
+    nodeDtor(node);
+}
+
+void nodeDtor(Node *node)
+{
+    if (node == nullptr) {return;}
+
     #ifdef DEBUG
-        node->data   = 0;
-        node->left   = nullptr;
-        node->right  = nullptr;
-        node->parent = nullptr;
-        node->depth  = 0;
+        node->type       = NUM;
+        node->data.value = 0;
+        node->left       = nullptr;
+        node->right      = nullptr;
+        node->parent     = nullptr;
     #endif //DEBUG
 
     if (node != JUST_FREE_PTR) 
@@ -90,7 +94,6 @@ void treeDtor(Node *node)
         free(node);
         node = (Node *)JUST_FREE_PTR;
     }
-
 }
 
 void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
@@ -104,7 +107,7 @@ void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
     {
         if (mode == PRE_ORDER)
         {
-            printNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->type, node->data, space, mode);
         }
         else
         {
@@ -115,14 +118,14 @@ void treePrint(FILE *stream, const Node *node, PrintMode mode, int space)
 
         if (mode == IN_ORDER)
         {
-            printNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->type, node->data, space, mode);
         }
 
         treePrint(stream, node->right, mode, space);
 
         if (mode == POST_ORDER)
         {
-            printNodeData(stream, node->data, space, mode);
+            printNodeData(stream, node->type, node->data, space, mode);
         }
         
         space--;
@@ -180,11 +183,10 @@ void treeGraphDump(const Node *node)
 
 //--------------------------------------------------------------
 
-static Node *addNode(Node *node, tree_elem_t value, bool toLeft, bool must_been_released)
+static Node *addNode(Node *node, Type type, Data data, bool toLeft)
 {
-    Node *newNode   = treeCtor(value, must_been_released);
+    Node *newNode   = treeCtor(type, data);
     newNode->parent = node;
-    newNode->depth  = node->depth + 1;
 
     if (toLeft) {node->left  = newNode;}
     else        {node->right = newNode;}
@@ -219,12 +221,26 @@ static int creatGraphvizTreeCode(const Node *node, int nodeNum, FILE *dump_file)
     }
 
     const char *color = IsLeaf(node) ? LEAF_COLOR : NODE_COLOR;
-    if (node->must_been_released)
-    {
-        color = JUST_ADDED_NODE;
-    }
 
-    fprintf(dump_file, "node%d [label = \"%s\", fillcolor = %s]\n", nodeNum, node->data, color);
+    fprintf(dump_file, "node%d [fillcolor = %s, label = \"", nodeNum, color);
+
+    if (node->type == NUM)
+    {
+        fprintf(dump_file, "%.2f\"]\n", node->data.value);
+    }
+    else if (node->type == OP)
+    {
+        fprintf(dump_file, "OP|%c\"]\n", node->data.op);
+    }
+    else if (node->type == VAR)
+    {
+        fprintf(dump_file, "VAR|%c\"]\n", node->data.var);
+    }
+    else 
+    {
+        fprintf(dump_file, "ERROR\"]\n");
+
+    }
 
     return number_of_nodes;
 }
@@ -235,14 +251,14 @@ static void get_dump_filenames(char *dump_filename, char *svg_dump_filename)
     sprintf(svg_dump_filename, SVG_DUMP_PATH, Dump_counter);
 }
 
-static void printNodeData(FILE *stream, tree_elem_t data, int space, PrintMode mode)
+static void printNodeData(FILE *stream, Type type, Data data, int space, PrintMode mode)//TODO:
 { 
-    if (mode != PRE_ORDER) 
-    {
-        setSpace(stream, space);
-    }
+    // if (mode != PRE_ORDER) 
+    // {
+    //     setSpace(stream, space);
+    // }
 
-    fprintf(stream, "\"%s\"\n", data);
+    // fprintf(stream, "\"%s\"\n", data);
 }
 
 #ifdef DEBUG
