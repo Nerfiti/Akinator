@@ -3,19 +3,19 @@
 # Akinator
 ------------------------------------------------------------------------------------------------------------------------------
 
-This program have a not large database characters from "The Witcher" and can use your own database (see "Database" section).
+This program has a small database of characters from "The Witcher", and you can use your own database. (see "Database" section).
 
-Akinator can work in three modes. You can use command-line flags (see "Flags" section) or choose mode in program.
+Akinator works in three modes: you can use commandline flags (see "Flags" section) or choose a mode in the program.
 
 ------------------------------------------------------------------------------------------------------------------------------
 # Mode
 ------------------------------------------------------------------------------------------------------------------------------
 
-First mode: Guessing characters. You have to ask Akinator's questions about your character. If Akinator don't guess your character, you have to write who you have made a wish for and what a difference between your character and Akinator's. After this your character will be added to the current tree. And before finish program, you can write changes to the database.
+First mode: guessing characters. You need to ask Akinator questions about your character. If he doesn't guess it, you need to write down who you wished for and what the difference is between your character and his. After that, your character will be added to the tree. Before the program finishes, you can make changes to the database.
 
-Second mode: Get a definition of the characters. You have to write the name of your character and Akinator give you it's definition (or say, that character didn't find)
+Second mode: get a definition for characters. Write the name of the character and Akinator will give you its definition (or tell you that the character wasn't found). 
 
-Third mode: Compare two characters, you wrote.
+Third mode: compare two characters you wrote about.
 
 ------------------------------------------------------------------------------------------------------------------------------
 # Flags
